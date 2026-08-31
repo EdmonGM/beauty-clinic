@@ -7,7 +7,8 @@ const services = [
   {
     category: "Skincare",
     name: "HydraFacial",
-    description: "Deeply cleansing, hydrating facial with exfoliation and serums.",
+    description:
+      "Deeply cleansing, hydrating facial with exfoliation and serums.",
     price: 120.0,
     durationMinutes: 60,
   },
