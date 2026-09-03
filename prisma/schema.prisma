@@ -5,6 +5,7 @@ generator client {
 }
 
 datasource db {
+  url = env("DATABASE_URL")
   provider = "postgresql"
 }
 
@@ -62,7 +63,7 @@ model Service {
   category          Category      @relation(fields: [categoryId], references: [id])
   name              String
   description       String?
-  price             Decimal       @db.Decimal(10, 2)
+  price             Float
   durationMinutes   Int
   beforeAfterImages String[]
   isActive          Boolean       @default(true)
