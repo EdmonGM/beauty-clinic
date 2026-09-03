@@ -13,3 +13,14 @@ export const registerSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
+
+export const serviceSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  price: z.number().positive("Price must be positive"),
+  durationMinutes: z.number().int().positive("Duration must be positive"),
+  categoryId: z.string().min(1, "Category is required"),
+  isActive: z.boolean(),
+})
+
+export type ServiceInput = z.infer<typeof serviceSchema>

@@ -1,5 +1,6 @@
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/sonner"
 
 export default async function AdminLayout({
   children,
@@ -9,7 +10,8 @@ export default async function AdminLayout({
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <main className="p-6">{children}</main>
+      <main className="w-full p-6">{children}</main>
+      <Toaster />
     </SidebarProvider>
   )
 }
