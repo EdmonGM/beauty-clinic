@@ -15,8 +15,8 @@ import { Separator } from "@/components/ui/separator"
 import { UserMenu } from "../auth/user-menu"
 
 const navItems = [
-  { href: "dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "services", label: "Services", icon: ScissorsIcon },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
+  { href: "/services", label: "Services", icon: ScissorsIcon },
 ]
 
 export function AdminSidebar() {
@@ -32,11 +32,11 @@ export function AdminSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 className={
-                  pathname.startsWith("/admin/" + item.href)
+                  pathname.startsWith("/admin" + item.href)
                     ? "rounded-sm bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground"
                     : "rounded-sm"
                 }
-                render={<a href={item.href} />}
+                render={<a href={"/admin" + item.href} />}
               >
                 <item.icon />
                 <span>{item.label}</span>
