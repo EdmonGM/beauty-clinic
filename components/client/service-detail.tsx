@@ -53,7 +53,7 @@ export function ServiceDetail({ service, clinicHours }: ServiceDetailProps) {
                 {service.beforeAfterImages.map((src, index) => (
                   <div
                     key={`${src}-${index}`}
-                    className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted"
+                    className="relative aspect-4/3 overflow-hidden rounded-2xl bg-muted"
                   >
                     <Image
                       src={src}
