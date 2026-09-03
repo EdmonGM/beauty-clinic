@@ -1,5 +1,7 @@
 import { prisma } from "../lib/prisma"
 import { DayOfWeek } from "../generated/prisma/index"
+import { hashPassword } from "better-auth/crypto"
+import { randomUUID } from "crypto"
 
 const categories = ["Skincare", "Laser", "Injectables", "Body Contouring"]
 
@@ -72,6 +74,9 @@ const weeklyHours = [
   { dayOfWeek: DayOfWeek.SATURDAY, startTime: "10:00", endTime: "14:00" },
 ]
 
+const adminEmail = "admin@clinic.com"
+const adminPassword = "123123123"
+
 async function main() {
   for (const name of categories) {
     await prisma.category.upsert({
@@ -111,6 +116,33 @@ async function main() {
     })
   }
 
+  let adminCreated = false
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: adminEmail },
+  })
+  if (!existingAdmin) {
+    const hashedPassword = await hashPassword(adminPassword)
+    const adminUser = await prisma.user.create({
+      data: {
+        name: "Admin",
+        email: adminEmail,
+        role: "ADMIN",
+        emailVerified: true,
+      },
+    })
+    await prisma.account.create({
+      data: {
+        id: randomUUID(),
+        issuer: "credential",
+        accountId: adminUser.id,
+        providerId: "credential",
+        userId: adminUser.id,
+        password: hashedPassword,
+      },
+    })
+    adminCreated = true
+  }
+
   const [categoryCount, serviceCount, availabilityCount] = await Promise.all([
     prisma.category.count(),
     prisma.service.count(),
@@ -118,7 +150,7 @@ async function main() {
   ])
 
   console.log(
-    `Seeded: ${categoryCount} categories, ${serviceCount} services, ${availabilityCount} availability slots`
+    `Seeded: ${categoryCount} categories, ${serviceCount} services, ${availabilityCount} availability slots${adminCreated ? `, admin user (${adminEmail})` : ""}`
   )
 }
 
