@@ -20,7 +20,11 @@ export default async function HomePage() {
           to injectables and body contouring. Booking opens soon.
         </p>
         <div className="flex items-center gap-3">
-          <Button size="lg" nativeButton={false} render={<Link href={"/services"}/>}>
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<a href={"/services"} />}
+          >
             Browse services
           </Button>
         </div>
