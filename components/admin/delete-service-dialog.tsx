@@ -14,14 +14,14 @@ import { useTransition } from "react"
 
 type DeleteServiceDialogProps = {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
   serviceId: string
   serviceName: string
 }
 
 export function DeleteServiceDialog({
   open,
-  onOpenChange,
+  onOpenChangeAction,
   serviceId,
   serviceName,
 }: DeleteServiceDialogProps) {
@@ -31,14 +31,14 @@ export function DeleteServiceDialog({
     startTransition(async () => {
       const result = await deleteService(serviceId)
       if (result.success) {
-        onOpenChange(false)
+        onOpenChangeAction(false)
         window.location.reload()
       }
     })
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Service</DialogTitle>
@@ -50,7 +50,7 @@ export function DeleteServiceDialog({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => onOpenChangeAction(false)}
             disabled={isPending}
           >
             Cancel

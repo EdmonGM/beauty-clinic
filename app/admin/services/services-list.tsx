@@ -29,7 +29,7 @@ export function ServicesList({ services }: ServicesListProps) {
 
       <DeleteServiceDialog
         open={deleteTarget !== null}
-        onOpenChange={(open) => {
+        onOpenChangeAction={(open) => {
           if (!open) setDeleteTarget(null)
         }}
         serviceId={deleteTarget?.id ?? ""}
