@@ -1,8 +1,6 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
 import {
   actionError,
   ActionResponse,
@@ -10,10 +8,9 @@ import {
 } from "@/lib/action-response"
 import { serviceSchema, ServiceInput } from "@/lib/validations"
 import { ServiceWithCategory } from "@/types/service"
+import { getCachedSession } from "../auth-server-hooks"
 async function requireAdmin() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
+  const session = await getCachedSession()
   if (!session || session.user.role !== "ADMIN") {
     throw new Error("Unauthorized")
   }
