@@ -1,20 +1,21 @@
 "use client"
 
 import Link from "next/link"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { signOutAction } from "@/lib/actions/auth"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
-import { Button, buttonVariants } from "@/components/ui/button"
-import { useSession } from "@/lib/auth-hooks"
-import { signOutAction } from "@/lib/actions/auth"
+type UserMenuProps = {
+  session: any | null
+}
 
-export function UserMenu() {
-  const { data: session, isPending } = useSession()
+export function UserMenu({ session }: UserMenuProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [signingOut, setSigningOut] = useState(false)
 
-  if (isPending || pathname == "/register" || pathname == "/login") {
+  if (pathname == "/register" || pathname == "/login") {
     return <div className="h-8 w-20" />
   }
 

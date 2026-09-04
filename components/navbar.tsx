@@ -1,7 +1,12 @@
+"use server"
+
 import Link from "next/link"
 import { UserMenu } from "./auth/user-menu"
+import { getCachedSession } from "@/lib/auth-server-hooks"
 
 export default async function Navbar() {
+  const session = await getCachedSession()
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-6 px-4">
@@ -19,7 +24,7 @@ export default async function Navbar() {
             Services
           </Link>
         </nav>
-        <UserMenu />
+        <UserMenu session={session} />
       </div>
     </header>
   )

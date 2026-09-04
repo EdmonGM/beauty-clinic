@@ -1,6 +1,3 @@
-"use client"
-
-import { usePathname } from "next/navigation"
 import { LayoutDashboardIcon, ScissorsIcon } from "lucide-react"
 import {
   Sidebar,
@@ -13,14 +10,17 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { UserMenu } from "../auth/user-menu"
+import { getCachedSession } from "@/lib/auth-server-hooks"
+import { headers } from "next/headers"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/services", label: "Services", icon: ScissorsIcon },
 ]
 
-export function AdminSidebar() {
-  const pathname = usePathname()
+export async function AdminSidebar() {
+  const session = await getCachedSession()
+  const pathname = (await headers()).get("x-pathname")
 
   return (
     <Sidebar>
@@ -32,7 +32,7 @@ export function AdminSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 className={
-                  pathname.startsWith("/admin" + item.href)
+                  pathname === "/admin" + item.href
                     ? "rounded-sm bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground"
                     : "rounded-sm"
                 }
@@ -46,7 +46,7 @@ export function AdminSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <UserMenu />
+        <UserMenu session={session} />
       </SidebarFooter>
     </Sidebar>
   )
