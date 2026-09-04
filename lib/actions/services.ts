@@ -49,6 +49,56 @@ export async function getServiceByIdAdmin(
   }
 }
 
+export async function getActiveServices(
+  categoryName?: string
+): Promise<ActionResponse<ServiceWithCategory[]>> {
+  try {
+    const services = await prisma.service.findMany({
+      where: {
+        isActive: true,
+        ...(categoryName ? { category: { name: categoryName } } : {}),
+      },
+      include: { category: true },
+      orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
+    })
+
+    return actionSuccess(services, "Get active survices success")
+  } catch (error) {
+    return actionError(error, "Get active services failed")
+  }
+}
+
+export async function getFeaturedServices(
+  limit = 4
+): Promise<ActionResponse<ServiceWithCategory[]>> {
+  try {
+    const services = await prisma.service.findMany({
+      where: { isActive: true },
+      include: { category: true },
+      orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
+      take: limit,
+    })
+    return actionSuccess(services, "Get featured survices success")
+  } catch (error) {
+    return actionError(error, "Get featured services failed")
+  }
+}
+
+export async function getServiceById(
+  id: string
+): Promise<ActionResponse<ServiceWithCategory | null>> {
+  try {
+    const service = await prisma.service.findFirst({
+      where: { id, isActive: true },
+      include: { category: true },
+    })
+
+    return actionSuccess(service, "Get service by id success")
+  } catch (error) {
+    return actionError(error, "Get service by id error")
+  }
+}
+
 export async function createService(
   input: ServiceInput
 ): Promise<ActionResponse<string>> {

@@ -2,7 +2,8 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { ServiceDetail } from "@/components/client/service-detail"
-import { getClinicHours, getServiceById } from "@/lib/catalog"
+import { getClinicHours } from "@/lib/catalog"
+import { getServiceById } from "@/lib/actions/services"
 
 type ServicePageProps = {
   params: Promise<{ id: string }>
@@ -15,9 +16,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
     getServiceById(id),
     getClinicHours(),
   ])
-  if (!service) notFound()
+  if (!service || !service.success || !service.data) {
+    notFound()
+  }
 
-  return <ServiceDetail service={service} clinicHours={clinicHours} />
+  return <ServiceDetail service={service.data} clinicHours={clinicHours} />
 }
 
 export async function generateMetadata({
@@ -25,6 +28,7 @@ export async function generateMetadata({
 }: ServicePageProps): Promise<Metadata> {
   const { id } = await params
   const service = await getServiceById(id)
-  if (!service) return { title: "Service not found" }
-  return { title: service.name }
+  if (!service || !service.success || !service.data)
+    return { title: "Service not found" }
+  return { title: service.data.name }
 }

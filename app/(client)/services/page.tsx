@@ -1,6 +1,7 @@
 import { CategoryNav } from "@/components/client/category-nav"
 import { ServiceCard } from "@/components/client/service-card"
-import { getActiveServices, getCategories } from "@/lib/catalog"
+import { getActiveServices } from "@/lib/actions/services"
+import { getCategories } from "@/lib/catalog"
 
 type ServicesPageProps = {
   searchParams: Promise<{ category?: string | string[] }>
@@ -17,6 +18,8 @@ export default async function ServicesPage({
     getActiveServices(categoryName),
   ])
 
+  if (!services.success || !services.data) return
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4">
@@ -26,9 +29,9 @@ export default async function ServicesPage({
         <CategoryNav categories={categories} active={categoryName} />
       </div>
 
-      {services.length > 0 ? (
+      {services.data.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((service) => (
+          {services.data.map((service) => (
             <ServiceCard key={service.id} service={service} />
           ))}
         </div>

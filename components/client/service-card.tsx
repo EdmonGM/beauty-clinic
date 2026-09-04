@@ -9,16 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { formatDuration, formatPrice } from "@/lib/format"
+import { ServiceWithCategory } from "@/types/service"
 
 type ServiceCardProps = {
-  service: {
-    id: string
-    name: string
-    description: string | null
-    price: { toNumber(): number }
-    durationMinutes: number
-    category: { name: string }
-  }
+  service: ServiceWithCategory
 }
 
 export function ServiceCard({ service }: ServiceCardProps) {

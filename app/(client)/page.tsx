@@ -1,13 +1,13 @@
-import Link from "next/link"
-
 import { ServiceCard } from "@/components/client/service-card"
 import { Button } from "@/components/ui/button"
-import { getFeaturedServices } from "@/lib/catalog"
+import { getFeaturedServices } from "@/lib/actions/services"
 
 export const dynamic = "force-dynamic"
 
 export default async function HomePage() {
   const featured = await getFeaturedServices(4)
+
+  if (!featured.success || !featured.data) return
 
   return (
     <div className="flex flex-col gap-12">
@@ -33,7 +33,7 @@ export default async function HomePage() {
       <section className="flex flex-col gap-4">
         <h2 className="font-heading text-lg font-medium">Popular treatments</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((service) => (
+          {featured.data.map((service) => (
             <ServiceCard key={service.id} service={service} />
           ))}
         </div>

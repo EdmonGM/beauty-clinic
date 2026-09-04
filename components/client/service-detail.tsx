@@ -9,17 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { formatDuration, formatPrice } from "@/lib/format"
+import { ServiceWithCategory } from "@/types/service"
 
 type ServiceDetailProps = {
-  service: {
-    id: string
-    name: string
-    description: string | null
-    price: { toNumber(): number }
-    durationMinutes: number
-    beforeAfterImages: string[]
-    category: { name: string }
-  }
+  service: ServiceWithCategory
   clinicHours: Array<{ dayOfWeek: string; startTime: string; endTime: string }>
 }
 
