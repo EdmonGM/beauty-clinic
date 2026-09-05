@@ -8,14 +8,7 @@ import {
 } from "@/lib/action-response"
 import { serviceSchema, ServiceInput } from "@/lib/validations"
 import { ServiceWithCategory } from "@/types/service"
-import { getCachedSession } from "../auth-server-hooks"
-async function requireAdmin() {
-  const session = await getCachedSession()
-  if (!session || session.user.role !== "ADMIN") {
-    throw new Error("Unauthorized")
-  }
-  return session
-}
+import { requireAdmin } from "../auth-server-hooks"
 
 export async function getAllServices(): Promise<
   ActionResponse<ServiceWithCategory[]>

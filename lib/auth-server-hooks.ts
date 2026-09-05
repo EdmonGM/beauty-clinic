@@ -7,3 +7,11 @@ export const getCachedSession = cache(async () => {
     headers: await headers(),
   })
 })
+
+export async function requireAdmin() {
+  const session = await getCachedSession()
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Unauthorized")
+  }
+  return true
+}

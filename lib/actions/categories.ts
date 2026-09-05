@@ -8,15 +8,7 @@ import {
 } from "@/lib/action-response"
 import { categorySchema, CategoryInput } from "@/lib/validations"
 import { CategoryWithServices } from "@/types/category"
-import { getCachedSession } from "../auth-server-hooks"
-
-async function requireAdmin() {
-  const session = await getCachedSession()
-  if (!session || session.user.role !== "ADMIN") {
-    throw new Error("Unauthorized")
-  }
-  return session
-}
+import { getCachedSession, requireAdmin } from "../auth-server-hooks"
 
 export async function getAllCategories(): Promise<
   ActionResponse<CategoryWithServices[]>
