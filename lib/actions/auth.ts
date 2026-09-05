@@ -27,7 +27,7 @@ export async function signInAction({
     })
     return actionSuccess({ username: user.name, token }, "Log in success")
   } catch (error) {
-    return actionError(error, "Log in error")
+    return actionError(error, "Incorrect email or password")
   }
 }
 

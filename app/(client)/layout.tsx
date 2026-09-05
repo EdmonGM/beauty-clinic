@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar"
+import { Toaster } from "sonner"
 
 export default function ClientLayout({
   children,
@@ -17,6 +18,7 @@ export default function ClientLayout({
           <span>© {new Date().getFullYear()}</span>
         </div>
       </footer>
+      <Toaster />
     </div>
   )
 }
