@@ -12,7 +12,16 @@ import {
   BookAppointmentInput,
 } from "@/lib/validations/appointment"
 import { AvailableSlot, AppointmentWithService } from "@/types/appointment"
-import { DayOfWeek } from "@/generated/prisma/index"
+import { DayOfWeek, Availability } from "@/generated/prisma/index"
+import {
+  addMinutes,
+  areIntervalsOverlapping,
+  format,
+  isBefore,
+  startOfDay,
+  endOfDay,
+} from "date-fns"
+import { formatTimeStr, parseDateStr, setTimeStr } from "@/lib/format"
 
 const SLOT_INTERVAL_MINUTES = 30
 
@@ -26,19 +35,128 @@ const DAY_OF_WEEK_MAP: Record<string, DayOfWeek> = {
   Saturday: DayOfWeek.SATURDAY,
 }
 
-function parseDateStr(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number)
-  return new Date(year, month - 1, day)
+/**
+ * Returns the clinic's availability windows for the given date's weekday.
+ * Empty array means closed that day.
+ */
+export async function getDayAvailability(date: Date): Promise<Availability[]> {
+  const dayName = format(date, "EEEE")
+  const dayOfWeek = DAY_OF_WEEK_MAP[dayName]
+  if (!dayOfWeek) return []
+  return prisma.availability.findMany({ where: { dayOfWeek } })
 }
 
-function formatTimeStr(date: Date): string {
-  const h = String(date.getHours()).padStart(2, "0")
-  const m = String(date.getMinutes()).padStart(2, "0")
-  return `${h}:${m}`
+/** Whether a [start, end) interval falls fully within any availability window. */
+function isWithinAvailability(
+  availability: Availability[],
+  start: Date,
+  end: Date
+): boolean {
+  const startStr = formatTimeStr(start)
+  const endStr = formatTimeStr(end)
+  return availability.some(
+    (a) => a.startTime <= startStr && a.endTime >= endStr
+  )
 }
 
-function toISO(date: Date): string {
-  return date.toISOString()
+type Interval = { startsAt: Date; endsAt: Date }
+
+function overlaps(a: Interval, start: Date, end: Date): boolean {
+  return areIntervalsOverlapping(
+    { start: a.startsAt, end: a.endsAt },
+    { start, end }
+  )
+}
+
+/**
+ * Fetches blocked slots and (non-cancelled) appointments overlapping the
+ * given day, optionally filtered to a single service. Use with
+ * `hasConflict` to check individual candidate slots without re-querying.
+ */
+export async function getDayConflicts(date: Date, serviceId?: string) {
+  const dayStart = startOfDay(date)
+  const dayEnd = endOfDay(date)
+
+  const [blockedSlots, appointments] = await Promise.all([
+    prisma.blockedSlot.findMany({
+      where: { startsAt: { lt: dayEnd }, endsAt: { gt: dayStart } },
+    }),
+    prisma.appointment.findMany({
+      where: {
+        ...(serviceId && { serviceId }),
+        status: { not: "CANCELLED" },
+        startsAt: { lt: dayEnd },
+        endsAt: { gt: dayStart },
+      },
+    }),
+  ])
+
+  return { blockedSlots, appointments }
+}
+
+/** Whether a candidate [start, end) slot overlaps any blocked slot or appointment. */
+function hasConflict(
+  conflicts: { blockedSlots: Interval[]; appointments: Interval[] },
+  start: Date,
+  end: Date
+): boolean {
+  return (
+    conflicts.blockedSlots.some((b) => overlaps(b, start, end)) ||
+    conflicts.appointments.some((a) => overlaps(a, start, end))
+  )
+}
+
+/**
+ * Generates all bookable slots for a service on a given date, applying
+ * clinic hours, "no past slots today", and conflict checks. This is the
+ * single source of truth for slot validity — `createAppointment` checks
+ * a candidate slot against this same list rather than re-deriving rules.
+ */
+export async function generateAvailableSlots(
+  date: Date,
+  durationMinutes: number,
+  serviceId: string
+): Promise<AvailableSlot[]> {
+  const availability = await getDayAvailability(date)
+  if (availability.length === 0) return []
+
+  const conflicts = await getDayConflicts(date, serviceId)
+  const now = new Date()
+  const slots: AvailableSlot[] = []
+
+  for (const window of availability) {
+    const windowStart = setTimeStr(date, window.startTime)
+    const windowEnd = setTimeStr(date, window.endTime)
+
+    let cursor = windowStart
+    while (true) {
+      const slotEnd = addMinutes(cursor, durationMinutes)
+      if (isBefore(windowEnd, slotEnd)) break
+
+      const isPast = isBefore(cursor, now) || cursor.getTime() === now.getTime()
+      if (!isPast && !hasConflict(conflicts, cursor, slotEnd)) {
+        slots.push({
+          startsAt: cursor.toISOString(),
+          endsAt: slotEnd.toISOString(),
+        })
+      }
+
+      cursor = addMinutes(cursor, SLOT_INTERVAL_MINUTES)
+    }
+  }
+
+  return slots
+}
+
+/** Whether a candidate [start, end) slot is one of the generated available slots. */
+function isGeneratedSlot(
+  slots: AvailableSlot[],
+  start: Date,
+  end: Date
+): boolean {
+  const startISO = start.toISOString()
+  const endISO = end.toISOString()
+  return slots.some((s) => s.startsAt === startISO && s.endsAt === endISO)
 }
 
 export async function getAvailableSlots(
@@ -52,91 +170,17 @@ export async function getAvailableSlots(
     if (!service) return actionError(null, "Service not found")
 
     const date = parseDateStr(dateStr)
-    const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
-    const dayOfWeek = DAY_OF_WEEK_MAP[dayName]
-    if (!dayOfWeek) return actionSuccess([], "Clinic is closed on Sundays")
+    const slots = await generateAvailableSlots(
+      date,
+      service.durationMinutes,
+      serviceId
+    )
 
-    const availability = await prisma.availability.findMany({
-      where: { dayOfWeek },
-    })
-    if (availability.length === 0) {
-      return actionSuccess([], "Clinic is closed on this day")
+    if (slots.length === 0) {
+      return actionSuccess([], "No available slots on this day")
     }
 
-    const dayStart = new Date(date)
-    dayStart.setHours(0, 0, 0, 0)
-    const dayEnd = new Date(date)
-    dayEnd.setHours(23, 59, 59, 999)
-
-    const [blockedSlots, existingAppointments] = await Promise.all([
-      prisma.blockedSlot.findMany({
-        where: {
-          startsAt: { lt: dayEnd },
-          endsAt: { gt: dayStart },
-        },
-      }),
-      prisma.appointment.findMany({
-        where: {
-          serviceId,
-          status: { not: "CANCELLED" },
-          startsAt: { lt: dayEnd },
-          endsAt: { gt: dayStart },
-        },
-      }),
-    ])
-
-    const now = new Date()
-    const isToday =
-      date.getFullYear() === now.getFullYear() &&
-      date.getMonth() === now.getMonth() &&
-      date.getDate() === now.getDate()
-
-    const available: AvailableSlot[] = []
-
-    for (const slot of availability) {
-      const [openH, openM] = slot.startTime.split(":").map(Number)
-      const [closeH, closeM] = slot.endTime.split(":").map(Number)
-
-      const windowStart = new Date(date)
-      windowStart.setHours(openH, openM, 0, 0)
-      const windowEnd = new Date(date)
-      windowEnd.setHours(closeH, closeM, 0, 0)
-
-      let cursor = new Date(windowStart)
-
-      while (true) {
-        const slotEnd = new Date(
-          cursor.getTime() + service.durationMinutes * 60 * 1000
-        )
-
-        if (slotEnd > windowEnd) break
-
-        if (isToday && cursor <= now) {
-          cursor = new Date(
-            cursor.getTime() + SLOT_INTERVAL_MINUTES * 60 * 1000
-          )
-          continue
-        }
-
-        const overlapsBlocked = blockedSlots.some(
-          (b) => b.startsAt < slotEnd && b.endsAt > cursor
-        )
-        const overlapsAppointment = existingAppointments.some(
-          (a) => a.startsAt < slotEnd && a.endsAt > cursor
-        )
-
-        if (!overlapsBlocked && !overlapsAppointment) {
-          available.push({
-            startsAt: toISO(cursor),
-            endsAt: toISO(slotEnd),
-          })
-        }
-
-        cursor = new Date(cursor.getTime() + SLOT_INTERVAL_MINUTES * 60 * 1000)
-      }
-    }
-
-    return actionSuccess(available, "Available slots retrieved")
+    return actionSuccess(slots, "Available slots retrieved")
   } catch (error) {
     return actionError(error, "Failed to get available slots")
   }
@@ -155,63 +199,59 @@ export async function createAppointment(
     if (!service) return actionError(null, "Service not found")
 
     const date = parseDateStr(data.date)
-    const [timeH, timeM] = data.timeSlot.split(":").map(Number)
 
+    // Re-derive the exact same candidate slots getAvailableSlots would show,
+    // so "is this slot valid" can never drift out of sync between the two
+    // functions. This also enforces slot-grid alignment for free.
+    const slots = await generateAvailableSlots(
+      date,
+      service.durationMinutes,
+      data.serviceId
+    )
+
+    const [timeH, timeM] = data.timeSlot.split(":").map(Number)
     const startsAt = new Date(date)
     startsAt.setHours(timeH, timeM, 0, 0)
     const endsAt = new Date(
       startsAt.getTime() + service.durationMinutes * 60 * 1000
     )
 
-    if (startsAt <= new Date()) {
-      return actionError(null, "Cannot book a slot in the past")
+    if (!isGeneratedSlot(slots, startsAt, endsAt)) {
+      return actionError(null, "Selected time is not available")
     }
 
-    const dayName = date.toLocaleDateString("en-US", { weekday: "long" })
-    const dayOfWeek = DAY_OF_WEEK_MAP[dayName]
-
-    const availability = await prisma.availability.findMany({
-      where: { dayOfWeek },
-    })
-    const withinHours = availability.some(
-      (a) => a.startTime <= data.timeSlot && a.endTime >= formatTimeStr(endsAt)
-    )
-    if (!withinHours) {
-      return actionError(null, "Selected time is outside clinic hours")
-    }
-
-    const [blockedOverlap, appointmentOverlap] = await Promise.all([
-      prisma.blockedSlot.findFirst({
-        where: { startsAt: { lt: endsAt }, endsAt: { gt: startsAt } },
-      }),
-      prisma.appointment.findFirst({
+    // Re-check for conflicts inside a transaction immediately before create,
+    // to shrink (though not eliminate) the race window between the check
+    // above and the insert below. For strict guarantees, add a DB-level
+    // exclusion constraint on appointment time ranges.
+    const appointment = await prisma.$transaction(async (tx) => {
+      const conflict = await tx.appointment.findFirst({
         where: {
           status: { not: "CANCELLED" },
           startsAt: { lt: endsAt },
           endsAt: { gt: startsAt },
         },
-      }),
-    ])
+      })
+      if (conflict) {
+        throw new Error("SLOT_TAKEN")
+      }
 
-    if (blockedOverlap) {
-      return actionError(null, "This time slot is not available")
-    }
-    if (appointmentOverlap) {
-      return actionError(null, "This time slot is already booked")
-    }
-
-    const appointment = await prisma.appointment.create({
-      data: {
-        clientId: session.user.id,
-        serviceId: data.serviceId,
-        startsAt,
-        endsAt,
-        notes: data.notes || null,
-      },
+      return tx.appointment.create({
+        data: {
+          clientId: session.user.id,
+          serviceId: data.serviceId,
+          startsAt,
+          endsAt,
+          notes: data.notes || null,
+        },
+      })
     })
 
     return actionSuccess(appointment.id, "Appointment booked successfully")
   } catch (error) {
+    if (error instanceof Error && error.message === "SLOT_TAKEN") {
+      return actionError(error, "This time slot is already booked")
+    }
     return actionError(error, "Failed to create appointment")
   }
 }

@@ -1,3 +1,4 @@
+import { AvailableSlot } from "@/types/appointment"
 import z from "zod"
 
 export const loginSchema = z.object({
@@ -31,3 +32,11 @@ export const categorySchema = z.object({
 })
 
 export type CategoryInput = z.infer<typeof categorySchema>
+
+export const bookingSchema = z.object({
+  date: z.date("Select a date"),
+  slot: z.custom<AvailableSlot>((v) => !!v, "Select a time"),
+  notes: z.string().optional(),
+})
+
+export type BookingInput = z.infer<typeof bookingSchema>

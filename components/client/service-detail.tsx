@@ -1,6 +1,6 @@
 import Image from "next/image"
-
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -85,6 +85,14 @@ export function ServiceDetail({ service, clinicHours }: ServiceDetailProps) {
               </li>
             ))}
           </ul>
+        </CardContent>
+        <CardContent>
+          <Button
+            render={<a href={`/services/${service.id}/book`} />}
+            className="w-full"
+          >
+            Book Now
+          </Button>
         </CardContent>
       </Card>
     </div>

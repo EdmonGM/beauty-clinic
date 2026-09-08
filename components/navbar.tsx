@@ -23,6 +23,14 @@ export default async function Navbar() {
           >
             Services
           </Link>
+          {session && session.user.role === "CLIENT" && (
+            <Link
+              href="/appointments"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              My Appointments
+            </Link>
+          )}
         </nav>
         <UserMenu session={session} />
       </div>

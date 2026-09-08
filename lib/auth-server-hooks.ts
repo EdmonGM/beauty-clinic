@@ -15,3 +15,11 @@ export async function requireAdmin() {
   }
   return true
 }
+
+export async function requireClient() {
+  const session = await getCachedSession()
+  if (!session || session.user.role !== "CLIENT") {
+    throw new Error("Unauthorized")
+  }
+  return session
+}
