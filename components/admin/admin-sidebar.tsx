@@ -1,4 +1,9 @@
-import { LayoutDashboardIcon, ScissorsIcon, TagIcon } from "lucide-react"
+import {
+  CalendarDaysIcon,
+  LayoutDashboardIcon,
+  ScissorsIcon,
+  TagIcon,
+} from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +20,7 @@ import { headers } from "next/headers"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
+  { href: "/bookings", label: "Bookings", icon: CalendarDaysIcon },
   { href: "/services", label: "Services", icon: ScissorsIcon },
   { href: "/categories", label: "Categories", icon: TagIcon },
 ]

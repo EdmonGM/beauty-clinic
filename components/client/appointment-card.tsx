@@ -10,29 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CancelAppointmentDialog } from "./cancel-appointment-dialog"
 import { AppointmentWithService } from "@/types/appointment"
 import { formatPrice, formatDuration } from "@/lib/format"
+import { STATUS_LABEL, STATUS_BADGE_VARIANT } from "@/lib/appointment-status"
 
 type AppointmentCardProps = {
   appointment: AppointmentWithService
   onCancelledAction: () => void
-}
-
-const STATUS_VARIANT: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  PENDING: "outline",
-  CONFIRMED: "default",
-  COMPLETED: "secondary",
-  CANCELLED: "destructive",
-  NO_SHOW: "destructive",
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: "Pending",
-  CONFIRMED: "Confirmed",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-  NO_SHOW: "No Show",
 }
 
 export function AppointmentCard({
@@ -55,7 +37,7 @@ export function AppointmentCard({
               {appointment.service.category.name}
             </Badge>
           </div>
-          <Badge variant={STATUS_VARIANT[appointment.status]}>
+          <Badge variant={STATUS_BADGE_VARIANT[appointment.status]}>
             {STATUS_LABEL[appointment.status]}
           </Badge>
         </CardHeader>

@@ -70,10 +70,15 @@ function overlaps(a: Interval, start: Date, end: Date): boolean {
 
 /**
  * Fetches blocked slots and (non-cancelled) appointments overlapping the
- * given day, optionally filtered to a single service. Use with
- * `hasConflict` to check individual candidate slots without re-querying.
+ * given day, optionally excluding a single appointment. Excluded slots are
+ * treated as global conflicts — the clinic is modelled as one room, so any
+ * appointment blocks any slot regardless of service. Use with `hasConflict`
+ * to check individual candidate slots without re-querying.
  */
-export async function getDayConflicts(date: Date, serviceId?: string) {
+export async function getDayConflicts(
+  date: Date,
+  excludeAppointmentId?: string
+) {
   const dayStart = startOfDay(date)
   const dayEnd = endOfDay(date)
 
@@ -83,7 +88,7 @@ export async function getDayConflicts(date: Date, serviceId?: string) {
     }),
     prisma.appointment.findMany({
       where: {
-        ...(serviceId && { serviceId }),
+        ...(excludeAppointmentId && { id: { not: excludeAppointmentId } }),
         status: { not: "CANCELLED" },
         startsAt: { lt: dayEnd },
         endsAt: { gt: dayStart },
@@ -111,16 +116,19 @@ function hasConflict(
  * clinic hours, "no past slots today", and conflict checks. This is the
  * single source of truth for slot validity — `createAppointment` checks
  * a candidate slot against this same list rather than re-deriving rules.
+ *
+ * `excludeAppointmentId` lets rescheduling omit the appointment being
+ * moved so it does not conflict with its own current slot.
  */
 export async function generateAvailableSlots(
   date: Date,
   durationMinutes: number,
-  serviceId: string
+  excludeAppointmentId?: string
 ): Promise<AvailableSlot[]> {
   const availability = await getDayAvailability(date)
   if (availability.length === 0) return []
 
-  const conflicts = await getDayConflicts(date, serviceId)
+  const conflicts = await getDayConflicts(date, excludeAppointmentId)
   const now = new Date()
   const slots: AvailableSlot[] = []
 
@@ -149,11 +157,11 @@ export async function generateAvailableSlots(
 }
 
 /** Whether a candidate [start, end) slot is one of the generated available slots. */
-function isGeneratedSlot(
+export async function isGeneratedSlot(
   slots: AvailableSlot[],
   start: Date,
   end: Date
-): boolean {
+): Promise<boolean> {
   const startISO = start.toISOString()
   const endISO = end.toISOString()
   return slots.some((s) => s.startsAt === startISO && s.endsAt === endISO)
@@ -170,11 +178,7 @@ export async function getAvailableSlots(
     if (!service) return actionError(null, "Service not found")
 
     const date = parseDateStr(dateStr)
-    const slots = await generateAvailableSlots(
-      date,
-      service.durationMinutes,
-      serviceId
-    )
+    const slots = await generateAvailableSlots(date, service.durationMinutes)
 
     if (slots.length === 0) {
       return actionSuccess([], "No available slots on this day")
@@ -203,11 +207,7 @@ export async function createAppointment(
     // Re-derive the exact same candidate slots getAvailableSlots would show,
     // so "is this slot valid" can never drift out of sync between the two
     // functions. This also enforces slot-grid alignment for free.
-    const slots = await generateAvailableSlots(
-      date,
-      service.durationMinutes,
-      data.serviceId
-    )
+    const slots = await generateAvailableSlots(date, service.durationMinutes)
 
     const [timeH, timeM] = data.timeSlot.split(":").map(Number)
     const startsAt = new Date(date)
