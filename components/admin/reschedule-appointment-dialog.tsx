@@ -3,7 +3,12 @@
 import { useEffect, useState, useTransition } from "react"
 import { format } from "date-fns"
 import { Clock, Loader2 } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -86,7 +91,7 @@ export function RescheduleAppointmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent>
+      <DialogContent className="max-h-4/5 overflow-y-scroll">
         <DialogHeader>
           <DialogTitle>Reschedule {appointment.service.name}</DialogTitle>
         </DialogHeader>
