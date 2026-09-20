@@ -7,21 +7,20 @@ import {
   actionSuccess,
 } from "@/lib/action-response"
 import { requireAdmin } from "@/lib/auth-server-hooks"
-import { isGeneratedSlot, generateAvailableSlots } from "./appointments"
 import { endOfDay, startOfDay } from "date-fns"
 import { parseDateStr } from "@/lib/format"
-import { canReschedule, canTransition } from "@/lib/appointment-status"
 import {
-  AdminAppointment,
-  AdminAppointmentsFilter,
-  AvailableSlot,
-} from "@/types/appointment"
+  canReschedule,
+  canUpdateAppointmentStatus,
+} from "@/lib/appointment-status"
+import { AdminAppointment, AdminAppointmentsFilter } from "@/types/appointment"
 import { AppointmentStatus } from "@/generated/prisma/index"
 import {
   adminBookingsFilterSchema,
   rescheduleAppointmentSchema,
   RescheduleAppointmentInput,
 } from "@/lib/validations/admin-appointment"
+import { validateSlot } from "../slot-validator"
 
 export async function getAdminAppointments(
   filter: AdminAppointmentsFilter = {}
@@ -101,7 +100,7 @@ export async function updateAppointmentStatus(
     })
     if (!appointment) return actionError(null, "Appointment not found")
 
-    if (!canTransition(appointment.status, status)) {
+    if (!canUpdateAppointmentStatus(appointment.status, status)) {
       return actionError(
         null,
         `Appointment cannot be moved from ${appointment.status} to ${status}`
@@ -116,32 +115,6 @@ export async function updateAppointmentStatus(
     return actionSuccess(null, "Appointment status updated")
   } catch (error) {
     return actionError(error, "Failed to update appointment status")
-  }
-}
-
-export async function getRescheduleSlots(
-  appointmentId: string,
-  dateStr: string
-): Promise<ActionResponse<AvailableSlot[]>> {
-  try {
-    await requireAdmin()
-    const appointment = await prisma.appointment.findUnique({
-      where: { id: appointmentId },
-      include: { service: true },
-    })
-    if (!appointment) return actionError(null, "Appointment not found")
-    if (!canReschedule(appointment.status)) {
-      return actionError(null, "This appointment cannot be rescheduled")
-    }
-
-    const slots = await generateAvailableSlots(
-      parseDateStr(dateStr),
-      appointment.service.durationMinutes,
-      appointmentId
-    )
-    return actionSuccess(slots, "Available slots retrieved")
-  } catch (error) {
-    return actionError(error, "Failed to get available slots")
   }
 }
 
@@ -163,21 +136,18 @@ export async function rescheduleAppointment(
     }
 
     const date = parseDateStr(data.date)
-    const [timeH, timeM] = data.timeSlot.split(":").map(Number)
-    const startsAt = new Date(date)
-    startsAt.setHours(timeH, timeM, 0, 0)
-    const endsAt = new Date(
-      startsAt.getTime() + appointment.service.durationMinutes * 60 * 1000
-    )
 
-    const slots = await generateAvailableSlots(
+    const validation = await validateSlot(
       date,
+      data.timeSlot,
       appointment.service.durationMinutes,
       appointmentId
     )
-    if (!isGeneratedSlot(slots, startsAt, endsAt)) {
-      return actionError(null, "Selected time is not available")
+    if (!validation.success) {
+      return actionError(null, validation.error)
     }
+
+    const { startsAt, endsAt } = validation
 
     await prisma.$transaction(async (tx) => {
       const conflict = await tx.appointment.findFirst({

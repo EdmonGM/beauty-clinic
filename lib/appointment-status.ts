@@ -1,10 +1,7 @@
 import { AppointmentStatus } from "@/generated/prisma/index"
 
 export type AppointmentStatusBadgeVariant =
-  | "default"
-  | "secondary"
-  | "destructive"
-  | "outline"
+  "default" | "secondary" | "destructive" | "outline"
 
 export const APPOINTMENT_STATUSES: AppointmentStatus[] = [
   "PENDING",
@@ -41,7 +38,7 @@ const ALLOWED_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
   NO_SHOW: [],
 }
 
-export function canTransition(
+export function canUpdateAppointmentStatus(
   from: AppointmentStatus,
   to: AppointmentStatus
 ): boolean {
