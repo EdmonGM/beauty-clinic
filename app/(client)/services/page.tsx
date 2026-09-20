@@ -1,7 +1,7 @@
 import { CategoryNav } from "@/components/client/category-nav"
 import { ServiceCard } from "@/components/client/service-card"
+import { getAllCategories } from "@/lib/actions/categories"
 import { getActiveServices } from "@/lib/actions/services"
-import { getCategories } from "@/lib/catalog"
 
 type ServicesPageProps = {
   searchParams: Promise<{ category?: string | string[] }>
@@ -14,11 +14,11 @@ export default async function ServicesPage({
   const categoryName = typeof category === "string" ? category : undefined
 
   const [categories, services] = await Promise.all([
-    getCategories(),
+    getAllCategories(),
     getActiveServices(categoryName),
   ])
 
-  if (!services.success || !services.data) return
+  if (!services.success || !services.data || !categories.success) return
 
   return (
     <div className="flex flex-col gap-8">
@@ -26,7 +26,7 @@ export default async function ServicesPage({
         <h1 className="font-heading text-2xl font-medium tracking-tight">
           Treatments
         </h1>
-        <CategoryNav categories={categories} active={categoryName} />
+        <CategoryNav categories={categories.data} active={categoryName} />
       </div>
 
       {services.data.length > 0 ? (
