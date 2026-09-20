@@ -3,6 +3,7 @@ import {
   LayoutDashboardIcon,
   ScissorsIcon,
   TagIcon,
+  UsersIcon,
 } from "lucide-react"
 import {
   Sidebar,
@@ -20,9 +21,10 @@ import { headers } from "next/headers"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/bookings", label: "Bookings", icon: CalendarDaysIcon },
+  { href: "/appointments", label: "Appointments", icon: CalendarDaysIcon },
   { href: "/services", label: "Services", icon: ScissorsIcon },
   { href: "/categories", label: "Categories", icon: TagIcon },
+  { href: "/users", label: "Users", icon: UsersIcon },
 ]
 
 export async function AdminSidebar() {

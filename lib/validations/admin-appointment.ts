@@ -1,6 +1,6 @@
 import z from "zod"
 
-export const adminBookingsFilterSchema = z.object({
+export const adminAppointmentsFilterSchema = z.object({
   status: z
     .enum(["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "NO_SHOW"])
     .optional(),
@@ -12,7 +12,9 @@ export const adminBookingsFilterSchema = z.object({
   query: z.string().max(100).optional(),
 })
 
-export type AdminBookingsFilterInput = z.infer<typeof adminBookingsFilterSchema>
+export type AdminAppointmentsFilterInput = z.infer<
+  typeof adminAppointmentsFilterSchema
+>
 
 export const rescheduleAppointmentSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),

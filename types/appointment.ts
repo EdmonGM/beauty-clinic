@@ -1,4 +1,10 @@
-import { Appointment, AppointmentStatus, Service, Category, User } from "@/generated/prisma"
+import {
+  Appointment,
+  AppointmentStatus,
+  Service,
+  Category,
+  User,
+} from "@/generated/prisma"
 
 export type AvailableSlot = {
   startsAt: string
@@ -14,7 +20,7 @@ export type AdminAppointment = Appointment & {
   service: Service & { category: Category }
 }
 
-export type AdminAppointmentsFilter = {
+export type AdminAppointmentsFilterInput = {
   status?: AppointmentStatus
   date?: string
   serviceId?: string

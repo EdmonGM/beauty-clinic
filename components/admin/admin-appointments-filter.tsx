@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { SearchIcon } from "lucide-react"
 import {
@@ -13,25 +13,26 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { AdminAppointmentsFilter } from "@/types/appointment"
+import { AdminAppointmentsFilterInput } from "@/types/appointment"
+import { AppointmentStatus } from "@/generated/prisma/index"
 import { APPOINTMENT_STATUSES, STATUS_LABEL } from "@/lib/appointment-status"
 import { ServiceWithCategory } from "@/types/service"
 
-type AdminBookingsFilterProps = {
-  values: AdminAppointmentsFilter
+type AdminAppointmentsFilterProps = {
+  values: AdminAppointmentsFilterInput
   services: ServiceWithCategory[]
 }
 
 const ALL = "all"
 
-export function AdminBookingsFilter({
+export function AdminAppointmentsFilter({
   values,
   services,
-}: AdminBookingsFilterProps) {
+}: AdminAppointmentsFilterProps) {
   const router = useRouter()
   const [query, setQuery] = useState(values.query ?? "")
 
-  function updateParams(overrides: AdminAppointmentsFilter) {
+  function updateParams(overrides: AdminAppointmentsFilterInput) {
     const params = new URLSearchParams()
     const next = { ...values, ...overrides }
     if (next.status) params.set("status", next.status)
@@ -40,10 +41,10 @@ export function AdminBookingsFilter({
     if (next.query) params.set("query", next.query)
 
     const qs = params.toString()
-    router.replace(qs ? `/admin/bookings?${qs}` : "/admin/bookings")
+    router.replace(qs ? `/admin/appointments?${qs}` : "/admin/appointments")
   }
 
-  function handleSearch(event: any) {
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     updateParams({ query: query.trim() || undefined })
   }
@@ -59,7 +60,7 @@ export function AdminBookingsFilter({
   }
 
   function toParam(v: string) {
-    return v === ALL ? undefined : v
+    return v === ALL ? undefined : (v as AppointmentStatus)
   }
 
   const hasFilters = Object.values(values).some(Boolean)

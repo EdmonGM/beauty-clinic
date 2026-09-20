@@ -14,10 +14,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { AdminAppointment, AvailableSlot } from "@/types/appointment"
 import { formatDuration, formatPrice } from "@/lib/format"
-import {
-  getRescheduleSlots,
-  rescheduleAppointment,
-} from "@/lib/actions/admin-appointments"
+import { rescheduleAppointment } from "@/lib/actions/admin-appointments"
+import { generateAvailableSlots } from "@/lib/slot-generator"
 
 type RescheduleAppointmentDialogProps = {
   open: boolean
@@ -53,14 +51,14 @@ export function RescheduleAppointmentDialog({
     setSlot(null)
     setError(null)
     setSlotsLoading(true)
-    getRescheduleSlots(appointment.id, format(date, "yyyy-MM-dd"))
-      .then((result) => {
-        if (result.success) {
-          setSlots(result.data)
-        } else {
-          setError(result.message)
-          setSlots([])
-        }
+    generateAvailableSlots(
+      date,
+      appointment.service.durationMinutes,
+      appointment.id
+    )
+      .then((slots) => {
+        setSlots(slots)
+        setError(null)
       })
       .catch(() => {
         setError("Failed to load available times")

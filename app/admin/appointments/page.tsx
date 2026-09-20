@@ -3,14 +3,14 @@ import {
   getAdminAppointments,
   getAdminAppointmentCounts,
 } from "@/lib/actions/admin-appointments"
-import { AdminBookingsFilter } from "@/components/admin/admin-bookings-filter"
-import { BookingsTable } from "@/components/admin/bookings-table"
-import { BookingStatusBadge } from "@/components/admin/booking-status-badge"
+import { AdminAppointmentsFilter } from "@/components/admin/admin-appointments-filter"
 import { APPOINTMENT_STATUSES } from "@/lib/appointment-status"
 import { AppointmentStatus } from "@/generated/prisma/index"
-import { AdminAppointmentsFilter } from "@/types/appointment"
+import { AdminAppointmentsFilterInput } from "@/types/appointment"
+import { AppointmentsStatusBadge } from "@/components/admin/appointments-status-badge"
+import { AppointmentsTable } from "@/components/admin/appointments-table"
 
-type AdminBookingsPageProps = {
+type AdminAppointmentsPageProps = {
   searchParams: Promise<{
     status?: string | string[]
     date?: string | string[]
@@ -24,12 +24,12 @@ function asString(value?: string | string[]) {
   return value
 }
 
-export default async function AdminBookingsPage({
+export default async function AdminAppointmentsPage({
   searchParams,
-}: AdminBookingsPageProps) {
+}: AdminAppointmentsPageProps) {
   const params = await searchParams
 
-  const filter: AdminAppointmentsFilter = {
+  const filter: AdminAppointmentsFilterInput = {
     status: asString(params.status) as AppointmentStatus | undefined,
     date: asString(params.date) || undefined,
     serviceId: asString(params.serviceId) || undefined,
@@ -57,10 +57,13 @@ export default async function AdminBookingsPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <h1 className="font-heading text-2xl font-semibold">Bookings</h1>
+        <h1 className="font-heading text-2xl font-semibold">Appointments</h1>
       </div>
 
-      <AdminBookingsFilter values={filter} services={servicesResponse.data} />
+      <AdminAppointmentsFilter
+        values={filter}
+        services={servicesResponse.data}
+      />
 
       <div className="flex flex-wrap gap-2">
         {APPOINTMENT_STATUSES.map((status) => (
@@ -68,13 +71,13 @@ export default async function AdminBookingsPage({
             key={status}
             className="flex items-center gap-2 rounded-2xl border px-3 py-1.5 text-sm"
           >
-            <BookingStatusBadge status={status} />
+            <AppointmentsStatusBadge status={status} />
             <span className="font-medium">{countsResponse.data[status]}</span>
           </div>
         ))}
       </div>
 
-      <BookingsTable appointments={appointmentsResponse.data} />
+      <AppointmentsTable appointments={appointmentsResponse.data} />
     </div>
   )
 }

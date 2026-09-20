@@ -13,17 +13,19 @@ import {
   canReschedule,
   canUpdateAppointmentStatus,
 } from "@/lib/appointment-status"
-import { AdminAppointment, AdminAppointmentsFilter } from "@/types/appointment"
+import {
+  AdminAppointment,
+  AdminAppointmentsFilterInput,
+} from "@/types/appointment"
 import { AppointmentStatus } from "@/generated/prisma/index"
 import {
-  adminBookingsFilterSchema,
   rescheduleAppointmentSchema,
   RescheduleAppointmentInput,
 } from "@/lib/validations/admin-appointment"
 import { validateSlot } from "../slot-validator"
 
 export async function getAdminAppointments(
-  filter: AdminAppointmentsFilter = {}
+  filter: AdminAppointmentsFilterInput = {}
 ): Promise<ActionResponse<AdminAppointment[]>> {
   try {
     await requireAdmin()
