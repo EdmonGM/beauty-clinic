@@ -16,6 +16,7 @@ import {
 import {
   AdminAppointment,
   AdminAppointmentsFilterInput,
+  AvailableSlot,
 } from "@/types/appointment"
 import { AppointmentStatus } from "@/generated/prisma/index"
 import {
@@ -23,6 +24,23 @@ import {
   RescheduleAppointmentInput,
 } from "@/lib/validations/admin-appointment"
 import { validateSlot } from "../slot-validator"
+import { generateAvailableSlots } from "../slot-generator"
+
+export async function getAdminAvailableSlots(
+  date: Date,
+  durationMinutes: number,
+  excludeAppointmentId?: string
+): Promise<ActionResponse<AvailableSlot[]>> {
+  try {
+    requireAdmin()
+    return actionSuccess(
+      await generateAvailableSlots(date, durationMinutes, excludeAppointmentId),
+      "Get available slots success"
+    )
+  } catch (error) {
+    return actionError(error, "Get available slots error")
+  }
+}
 
 export async function getAdminAppointments(
   filter: AdminAppointmentsFilterInput = {}
