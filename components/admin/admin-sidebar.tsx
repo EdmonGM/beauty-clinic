@@ -1,4 +1,5 @@
 import {
+  CalendarClockIcon,
   CalendarDaysIcon,
   LayoutDashboardIcon,
   ScissorsIcon,
@@ -22,6 +23,7 @@ import { headers } from "next/headers"
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
   { href: "/appointments", label: "Appointments", icon: CalendarDaysIcon },
+  { href: "/availability", label: "Availability", icon: CalendarClockIcon },
   { href: "/services", label: "Services", icon: ScissorsIcon },
   { href: "/categories", label: "Categories", icon: TagIcon },
   { href: "/users", label: "Users", icon: UsersIcon },
