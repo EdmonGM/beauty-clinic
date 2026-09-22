@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
-import { Clock, ArrowLeft, Check, Loader2 } from "lucide-react"
+import { Clock, ArrowLeft, Loader2 } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,7 +42,6 @@ today.setHours(0, 0, 0, 0)
 export function BookingWidget({ service }: BookingWidgetProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [success, setSuccess] = useState(false)
   const [slots, setSlots] = useState<AvailableSlot[]>([])
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -101,8 +100,8 @@ export function BookingWidget({ service }: BookingWidgetProps) {
           timeSlot: format(new Date(values.slot.startsAt), "HH:mm"),
           notes: values.notes || undefined,
         })
-        if (result.success) {
-          setSuccess(true)
+        if (result.success && result.data) {
+          router.push(`/appointments/${result.data}/payment`)
         } else {
           setError(result.message)
           setValue("slot", undefined as unknown as AvailableSlot)
@@ -113,28 +112,6 @@ export function BookingWidget({ service }: BookingWidgetProps) {
       }
     })
   })
-
-  if (success) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center gap-4 py-8">
-          <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <Check className="size-6 text-primary" />
-          </div>
-          <div className="text-center">
-            <CardTitle className="text-lg">Booking Confirmed</CardTitle>
-            <CardDescription className="mt-1">
-              Your appointment has been booked. You will receive a confirmation
-              shortly.
-            </CardDescription>
-          </div>
-          <Button variant="outline" onClick={() => router.push("/services")}>
-            Browse More Services
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <Card>
@@ -186,9 +163,9 @@ export function BookingWidget({ service }: BookingWidgetProps) {
                   </p>
                 ) : (
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                    {slots.map((s) => (
+                    {slots.map((s, index) => (
                       <Button
-                        key={s.startsAt}
+                        key={index}
                         variant="outline"
                         size="sm"
                         onClick={() => setValue("slot", s)}
