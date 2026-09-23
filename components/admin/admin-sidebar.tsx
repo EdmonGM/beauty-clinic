@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator"
 import { UserMenu } from "../auth/user-menu"
 import { getCachedSession } from "@/lib/auth-server-hooks"
 import { headers } from "next/headers"
+import Link from "next/link"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
@@ -47,7 +48,7 @@ export async function AdminSidebar() {
                     ? "rounded-sm bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground"
                     : "rounded-sm"
                 }
-                render={<a href={"/admin" + item.href} />}
+                render={<Link href={"/admin" + item.href} />}
               >
                 <item.icon />
                 <span>{item.label}</span>

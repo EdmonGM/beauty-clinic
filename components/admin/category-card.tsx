@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreVerticalIcon, PencilIcon, TrashIcon } from "lucide-react"
 import { CategoryWithServices } from "@/types/category"
+import Link from "next/link"
 
 type AdminCategoryCardProps = {
   category: CategoryWithServices
@@ -41,7 +42,7 @@ export function AdminCategoryCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              render={<a href={`/admin/categories/${category.id}/edit`} />}
+              render={<Link href={`/admin/categories/${category.id}/edit`} />}
             >
               <PencilIcon />
               Edit

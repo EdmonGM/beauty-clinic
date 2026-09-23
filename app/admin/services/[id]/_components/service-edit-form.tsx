@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ServiceWithCategory } from "@/types/service"
 import { ServiceForm } from "@/components/admin/service-form"
 import { toast } from "sonner"
+import Link from "next/link"
 
 type Category = {
   id: string
@@ -53,7 +54,11 @@ export function ServiceEditForm({ categories, service }: ServiceFormProps) {
       <Button type="submit" form="service-form">
         Save Changes
       </Button>
-      <Button variant="outline" render={<a href="/admin/services" />}>
+      <Button
+        variant="outline"
+        render={<Link href="/admin/services" />}
+        nativeButton={false}
+      >
         Cancel
       </Button>
     </>

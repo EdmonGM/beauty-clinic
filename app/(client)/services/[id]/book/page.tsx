@@ -24,7 +24,8 @@ export default async function BookPage({ params }: BookPageProps) {
         <Button
           variant="ghost"
           size="sm"
-          render={<a href={`/services/${id}`} />}
+          nativeButton={false}
+          render={<Link href={`/services/${id}`} />}
           className="gap-1.5"
         >
           ← Back to service

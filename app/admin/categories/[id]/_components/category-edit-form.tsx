@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { CategoryWithServices } from "@/types/category"
 import { CategoryForm } from "@/components/admin/category-form"
 import { toast } from "sonner"
+import Link from "next/link"
 
 type CategoryEditFormProps = {
   category: CategoryWithServices
@@ -39,7 +40,11 @@ export function CategoryEditForm({ category }: CategoryEditFormProps) {
       <Button type="submit" form="category-form">
         Save Changes
       </Button>
-      <Button variant="outline" render={<a href="/admin/categories" />}>
+      <Button
+        variant="outline"
+        render={<Link href="/admin/categories" />}
+        nativeButton={false}
+      >
         Cancel
       </Button>
     </>

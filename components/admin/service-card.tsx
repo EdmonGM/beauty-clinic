@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { toggleServiceActive } from "@/lib/actions/services"
 import { ServiceWithCategory } from "@/types/service"
+import Link from "next/link"
 
 type AdminServiceCardProps = {
   service: ServiceWithCategory
@@ -53,7 +54,7 @@ export function AdminServiceCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              render={<a href={`/admin/services/${service.id}/edit`} />}
+              render={<Link href={`/admin/services/${service.id}/edit`} />}
             >
               <PencilIcon />
               Edit

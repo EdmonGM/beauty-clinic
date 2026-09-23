@@ -8,6 +8,7 @@ import { createCategory } from "@/lib/actions/categories"
 import { Button } from "@/components/ui/button"
 import { CategoryForm } from "@/components/admin/category-form"
 import { toast } from "sonner"
+import Link from "next/link"
 
 export function CategoryCreateForm() {
   const router = useRouter()
@@ -34,7 +35,11 @@ export function CategoryCreateForm() {
       <Button type="submit" form="category-form">
         Create Category
       </Button>
-      <Button variant="outline" render={<a href="/admin/categories" />}>
+      <Button
+        variant="outline"
+        render={<Link href="/admin/categories" />}
+        nativeButton={false}
+      >
         Cancel
       </Button>
     </>

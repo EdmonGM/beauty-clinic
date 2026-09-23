@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function BookNotFound() {
   return (
@@ -10,7 +11,7 @@ export default function BookNotFound() {
         The treatment you&apos;re trying to book doesn&apos;t exist or is no
         longer available.
       </p>
-      <Button render={<a href="/services" />}>Back to services</Button>
+      <Button render={<Link href="/services" />}>Back to services</Button>
     </div>
   )
 }

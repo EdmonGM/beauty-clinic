@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { PlusIcon } from "lucide-react"
 import { ServicesList } from "./services-list"
 import { getAllServices } from "@/lib/actions/services"
+import Link from "next/link"
 
 export default async function AdminServicesPage() {
   const response = await getAllServices()
@@ -15,7 +16,10 @@ export default async function AdminServicesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-semibold">Services</h1>
-        <Button render={<a href="/admin/services/new" />}>
+        <Button
+          render={<Link href="/admin/services/new" />}
+          nativeButton={false}
+        >
           <PlusIcon />
           Add Service
         </Button>
@@ -26,7 +30,8 @@ export default async function AdminServicesPage() {
           <p className="text-muted-foreground">No services yet.</p>
           <Button
             variant="link"
-            render={<a href="/admin/services/new" />}
+            render={<Link href="/admin/services/new" />}
+            nativeButton={false}
             className="mt-2"
           >
             Create your first service

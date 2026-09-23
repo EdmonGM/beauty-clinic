@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card"
 import { formatDuration, formatPrice } from "@/lib/format"
 import { ServiceWithCategory } from "@/types/service"
+import Link from "next/link"
 
 type ServiceDetailProps = {
   service: ServiceWithCategory
@@ -71,9 +72,9 @@ export function ServiceDetail({ service, clinicHours }: ServiceDetailProps) {
         </CardHeader>
         <CardContent>
           <ul className="flex flex-col gap-2">
-            {clinicHours.map((slot) => (
+            {clinicHours.map((slot, index) => (
               <li
-                key={`${slot.dayOfWeek}-${slot.startTime}`}
+                key={index}
                 className="flex items-center justify-between gap-4 text-sm"
               >
                 <span>
@@ -88,8 +89,9 @@ export function ServiceDetail({ service, clinicHours }: ServiceDetailProps) {
         </CardContent>
         <CardContent>
           <Button
-            render={<a href={`/services/${service.id}/book`} />}
+            render={<Link href={`/services/${service.id}/book`} />}
             className="w-full"
+            nativeButton={false}
           >
             Book Now
           </Button>

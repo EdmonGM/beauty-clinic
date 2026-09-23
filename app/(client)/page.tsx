@@ -1,6 +1,7 @@
 import { ServiceCard } from "@/components/client/service-card"
 import { Button } from "@/components/ui/button"
 import { getFeaturedServices } from "@/lib/actions/services"
+import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
@@ -23,7 +24,7 @@ export default async function HomePage() {
           <Button
             size="lg"
             nativeButton={false}
-            render={<a href={"/services"} />}
+            render={<Link href={"/services"} />}
           >
             Browse services
           </Button>
