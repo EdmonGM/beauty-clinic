@@ -179,19 +179,6 @@ export function BookingWidget({ service }: BookingWidgetProps) {
                 )}
               </div>
             )}
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="notes" className="text-sm font-medium">
-                Notes (optional)
-              </Label>
-              <Textarea
-                id="notes"
-                placeholder="Any special requests or information..."
-                value={notes ?? ""}
-                onChange={(e) => setValue("notes", e.target.value)}
-                rows={3}
-              />
-            </div>
           </>
         ) : (
           <>
@@ -242,6 +229,19 @@ export function BookingWidget({ service }: BookingWidgetProps) {
                   {notes}
                 </div>
               )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="notes" className="text-sm font-medium">
+                Notes (optional)
+              </Label>
+              <Textarea
+                id="notes"
+                placeholder="Any special requests or information..."
+                value={notes ?? ""}
+                onChange={(e) => setValue("notes", e.target.value)}
+                rows={3}
+              />
             </div>
 
             <div className="flex gap-3">
