@@ -14,7 +14,7 @@ export default async function Navbar() {
           href="/"
           className="font-heading text-sm font-medium tracking-tight"
         >
-          Glow Clinic
+          Beauty Clinic
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           <Link

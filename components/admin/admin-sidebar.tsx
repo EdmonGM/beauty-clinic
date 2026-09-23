@@ -35,7 +35,9 @@ export function AdminSidebar({ session }: { session: any }) {
 
   return (
     <Sidebar>
-      <SidebarHeader className="px-4">Beauty Clinic</SidebarHeader>
+      <SidebarHeader className="px-4">
+        <Link href="/">Beauty Clinic</Link>
+      </SidebarHeader>
       <Separator />
       <SidebarContent className="mt-4 px-4">
         <SidebarMenu className="gap-2">

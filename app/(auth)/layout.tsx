@@ -13,7 +13,7 @@ export default function AuthLayout({
       </main>
       <footer className="border-t">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 text-sm text-muted-foreground">
-          <span>Glow Clinic</span>
+          <span>Beauty Clinic</span>
           <span>© {new Date().getFullYear()}</span>
         </div>
       </footer>
