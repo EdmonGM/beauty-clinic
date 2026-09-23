@@ -1,10 +1,15 @@
 import { getClinicAvailability } from "@/lib/actions/availability"
+import { getBlockedSlots } from "@/lib/actions/blocked-slots"
 import { AvailabilityTable } from "@/components/admin/availability-table"
+import { BlockedSlotsTable } from "@/components/admin/blocked-slots-table"
 
 export default async function AdminAvailabilityPage() {
-  const response = await getClinicAvailability()
+  const [availabilityResponse, blockedSlotsResponse] = await Promise.all([
+    getClinicAvailability(),
+    getBlockedSlots(),
+  ])
 
-  if (!response.success) {
+  if (!availabilityResponse.success || !blockedSlotsResponse.success) {
     return <p>ERROR</p>
   }
 
@@ -15,7 +20,11 @@ export default async function AdminAvailabilityPage() {
           Clinic Availability
         </h1>
       </div>
-      <AvailabilityTable availability={response.data} />
+      <AvailabilityTable availability={availabilityResponse.data} />
+      <div className="pt-4">
+        <h2 className="font-heading text-xl font-semibold">Blocked Slots</h2>
+        <BlockedSlotsTable blockedSlots={blockedSlotsResponse.data} />
+      </div>
     </div>
   )
 }

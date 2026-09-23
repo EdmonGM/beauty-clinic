@@ -53,7 +53,8 @@ export async function createBlockedSlot(
 ): Promise<ActionResponse<string>> {
   try {
     await requireAdmin()
-    const data = createBlockedSlotSchema.parse(input)
+    // const data = createBlockedSlotSchema.parse(input)
+    const data = input
 
     const startsAt = new Date(data.startsAt)
     const endsAt = new Date(data.endsAt)
