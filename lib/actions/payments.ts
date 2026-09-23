@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function createPaymentIntent(
   appointmentId: string
-): Promise<ActionResponse<{ clientSecret: string }>> {
+): Promise<ActionResponse<{ clientSecret: string; serviceName: string }>> {
   try {
     const session = await requireClient()
 
@@ -36,8 +36,14 @@ export async function createPaymentIntent(
       },
     })
 
+    if (!paymentIntent.client_secret)
+      return actionError(undefined, "Something went wrong!")
+
     return actionSuccess(
-      { clientSecret: paymentIntent.client_secret! },
+      {
+        clientSecret: paymentIntent.client_secret,
+        serviceName: appointment.service.name,
+      },
       "Payment intent created"
     )
   } catch (error) {
