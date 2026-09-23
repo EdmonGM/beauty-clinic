@@ -8,13 +8,12 @@ import {
 } from "@/lib/action-response"
 import { categorySchema, CategoryInput } from "@/lib/validations"
 import { CategoryWithServices } from "@/types/category"
-import { getCachedSession, requireAdmin } from "../auth-server-hooks"
+import { requireAdmin } from "../auth-server-hooks"
 
 export async function getAllCategories(): Promise<
   ActionResponse<CategoryWithServices[]>
 > {
   try {
-    await requireAdmin()
     const categories = await prisma.category.findMany({
       include: { services: true },
       orderBy: { name: "asc" },
