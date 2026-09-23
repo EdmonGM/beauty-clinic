@@ -11,19 +11,34 @@ import { CancelAppointmentDialog } from "./cancel-appointment-dialog"
 import { AppointmentWithService } from "@/types/appointment"
 import { formatPrice, formatDuration } from "@/lib/format"
 import { STATUS_LABEL, STATUS_BADGE_VARIANT } from "@/lib/appointment-status"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 type AppointmentCardProps = {
   appointment: AppointmentWithService
-  onCancelledAction: () => void
+  date: "PAST" | "UPCOMING"
 }
 
-export function AppointmentCard({
-  appointment,
-  onCancelledAction,
-}: AppointmentCardProps) {
+export function AppointmentCard({ appointment, date }: AppointmentCardProps) {
+  const router = useRouter()
+
+  function handleCancelled() {
+    router.refresh()
+  }
   const [cancelOpen, setCancelOpen] = useState(false)
   const canCancel =
-    appointment.status === "PENDING" || appointment.status === "CONFIRMED"
+    (appointment.status === "PENDING" || appointment.status === "CONFIRMED") &&
+    date === "UPCOMING"
+
+  const canPay = appointment.status === "PENDING" && date === "UPCOMING"
+
+  const statusBadge =
+    appointment.status === "PENDING" && appointment.paymentIntentId
+      ? { label: "Awaiting Payment", variant: "outline" as const }
+      : {
+          label: STATUS_LABEL[appointment.status],
+          variant: STATUS_BADGE_VARIANT[appointment.status],
+        }
 
   return (
     <>
@@ -37,9 +52,7 @@ export function AppointmentCard({
               {appointment.service.category.name}
             </Badge>
           </div>
-          <Badge variant={STATUS_BADGE_VARIANT[appointment.status]}>
-            {STATUS_LABEL[appointment.status]}
-          </Badge>
+          <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
@@ -63,15 +76,29 @@ export function AppointmentCard({
             <span className="text-muted-foreground">
               {formatPrice(appointment.service.price)}
             </span>
-            {canCancel && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setCancelOpen(true)}
-              >
-                Cancel
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {canCancel && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setCancelOpen(true)}
+                >
+                  Cancel
+                </Button>
+              )}
+              {canPay && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  render={
+                    <Link href={`/appointments/${appointment.id}/payment`} />
+                  }
+                  nativeButton={false}
+                >
+                  Pay
+                </Button>
+              )}
+            </div>
           </div>
 
           {appointment.notes && (
@@ -88,7 +115,7 @@ export function AppointmentCard({
         onOpenChangeAction={setCancelOpen}
         appointmentId={appointment.id}
         serviceName={appointment.service.name}
-        onCancelledAction={onCancelledAction}
+        onCancelledAction={handleCancelled}
       />
     </>
   )

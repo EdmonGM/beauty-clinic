@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { AppointmentsList } from "@/components/client/appointments-list"
 import { getClientAppointments } from "@/lib/actions/appointments"
+import { AppointmentCard } from "@/components/client/appointment-card"
 
 export const dynamic = "force-dynamic"
 
@@ -62,20 +62,30 @@ export default async function AppointmentsPage() {
           {upcoming.length > 0 && (
             <section className="flex flex-col gap-4">
               <h2 className="font-heading text-lg font-medium">Upcoming</h2>
-              <AppointmentsList
-                appointments={upcoming}
-                emptyMessage="No upcoming appointments."
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {upcoming.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    appointment={appointment}
+                    date="UPCOMING"
+                  />
+                ))}
+              </div>
             </section>
           )}
 
           {past.length > 0 && (
             <section className="flex flex-col gap-4">
               <h2 className="font-heading text-lg font-medium">Past</h2>
-              <AppointmentsList
-                appointments={past}
-                emptyMessage="No past appointments."
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {past.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    appointment={appointment}
+                    date="PAST"
+                  />
+                ))}
+              </div>
             </section>
           )}
         </>
