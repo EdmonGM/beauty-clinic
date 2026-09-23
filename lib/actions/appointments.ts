@@ -90,6 +90,13 @@ export async function createAppointment(
 
     return actionSuccess(appointment.id, "Appointment booked successfully")
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return actionError(
+        error,
+        "You need to be logged in to book an appointment"
+      )
+    }
+
     if (error instanceof Error && error.message === "SLOT_TAKEN") {
       return actionError(error, "This time slot is already booked")
     }

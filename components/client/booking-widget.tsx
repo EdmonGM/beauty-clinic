@@ -25,6 +25,7 @@ import {
   createAppointment,
 } from "@/lib/actions/appointments"
 import { BookingInput, bookingSchema } from "@/lib/validations"
+import { toast } from "sonner"
 
 type BookingWidgetProps = {
   service: {
@@ -103,7 +104,7 @@ export function BookingWidget({ service }: BookingWidgetProps) {
         if (result.success && result.data) {
           router.push(`/appointments/${result.data}/payment`)
         } else {
-          setError(result.message)
+          toast.error(result.message)
           setValue("slot", undefined as unknown as AvailableSlot)
         }
       } catch {
