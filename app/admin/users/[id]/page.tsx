@@ -30,7 +30,12 @@ export default async function AdminUserDetailPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" render={<Link href="/admin/users" />}>
+        <Button
+          variant="ghost"
+          size="sm"
+          render={<Link href="/admin/users" />}
+          nativeButton={false}
+        >
           Back to clients
         </Button>
       </div>
