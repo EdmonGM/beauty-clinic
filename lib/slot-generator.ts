@@ -31,16 +31,13 @@ function overlaps(a: Interval, start: Date, end: Date): boolean {
   )
 }
 
-/** Whether a candidate [start, end) slot overlaps any blocked slot or appointment. */
+/** Whether a candidate [start, end) slot overlaps any appointment. */
 function hasConflict(
-  conflicts: { blockedSlots: Interval[]; appointments: Interval[] },
+  conflicts: { appointments: Interval[] },
   start: Date,
   end: Date
 ): boolean {
-  return (
-    conflicts.blockedSlots.some((b) => overlaps(b, start, end)) ||
-    conflicts.appointments.some((a) => overlaps(a, start, end))
-  )
+  return conflicts.appointments.some((a) => overlaps(a, start, end))
 }
 
 /**
@@ -55,7 +52,7 @@ export async function getDayAvailability(date: Date): Promise<Availability[]> {
 }
 
 /**
- * Fetches blocked slots and (non-cancelled) appointments overlapping the
+ * Fetches (non-cancelled) appointments overlapping the
  * given day, optionally excluding a single appointment. Excluded slots are
  * treated as global conflicts — the clinic is modelled as one room, so any
  * appointment blocks any slot regardless of service. Use with `hasConflict`
@@ -68,21 +65,16 @@ export async function getDayConflicts(
   const dayStart = startOfDay(date)
   const dayEnd = endOfDay(date)
 
-  const [blockedSlots, appointments] = await Promise.all([
-    prisma.blockedSlot.findMany({
-      where: { startsAt: { lt: dayEnd }, endsAt: { gt: dayStart } },
-    }),
-    prisma.appointment.findMany({
-      where: {
-        ...(excludeAppointmentId && { id: { not: excludeAppointmentId } }),
-        status: { not: "CANCELLED" },
-        startsAt: { lt: dayEnd },
-        endsAt: { gt: dayStart },
-      },
-    }),
-  ])
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      ...(excludeAppointmentId && { id: { not: excludeAppointmentId } }),
+      status: { not: "CANCELLED" },
+      startsAt: { lt: dayEnd },
+      endsAt: { gt: dayStart },
+    },
+  })
 
-  return { blockedSlots, appointments }
+  return { appointments }
 }
 
 /**

@@ -100,7 +100,6 @@ async function main() {
           description: s.description,
           price: s.price,
           durationMinutes: s.durationMinutes,
-          beforeAfterImages: [],
           categoryId: category.id,
         },
       })

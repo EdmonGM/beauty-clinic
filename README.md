@@ -1,6 +1,6 @@
 # Non-Surgical Beauty Clinic Appointment Booking Platform
 
-A full-stack appointment booking application for a non-surgical beauty clinic (e.g. facials, laser treatments, injectables, skin consultations). Clients can browse services and book appointments; admins (clinic staff) manage services, schedules, and bookings.
+A full-stack appointment booking application for a non-surgical beauty clinic (e.g. facials, laser treatments, injectables, skin consultations). Clients can browse services and book appointments; admin manage services, schedules, and bookings.
 
 ## Tech Stack
 
@@ -16,14 +16,15 @@ A full-stack appointment booking application for a non-surgical beauty clinic (e
 ## Features
 
 ### Client-Facing
+
 - Browse services by category (e.g. Skincare, Laser, Injectables, Body Contouring)
-- View service details: description, duration, price, before/after images
+- View service details: description, duration, price
 - View available time slots
 - Book, reschedule, or cancel appointments
 - Account dashboard with upcoming and past appointments
-- Email/SMS booking confirmations and reminders (optional integration)
 
 ### Admin
+
 - Dashboard with booking overview
 - Manage services (create, edit, archive, pricing, duration)
 - Manage clinic working hours / availability
@@ -39,27 +40,31 @@ A full-stack appointment booking application for a non-surgical beauty clinic (e
 │   └── migrations/            # Prisma migrations
 ├── src/
 │   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   └── register/
 │   │   ├── (client)/          # Public/client-facing routes
 │   │   │   ├── services/
-│   │   │   ├── book/
-│   │   │   └── account/
+│   │   │   └── appointments/
 │   │   ├── (admin)/           # Admin dashboard routes
+│   │   │   ├── appointments/
+│   │   │   ├── availability/
+│   │   │   ├── categories/
 │   │   │   ├── dashboard/
 │   │   │   ├── services/
-│   │   │   ├── availability/
-│   │   │   └── bookings/
+│   │   │   └── users/
 │   │   ├── api/                # Route handlers (REST-style API endpoints)
-│   │   │   ├── services/
-│   │   │   ├── bookings/
 │   │   │   └── auth/
 │   │   └── layout.tsx
 │   ├── components/
 │   │   ├── ui/                 # shadcn/ui components
 │   │   ├── client/              # Client-facing components
+│   │   ├── auth/                # Auth components
 │   │   └── admin/               # Admin-facing components
 │   ├── lib/
 │   │   ├── prisma.ts            # Prisma client singleton
 │   │   ├── auth.ts              # Auth configuration
+│   │   ├── actions/             # Server Actions
 │   │   └── validations/         # Zod schemas
 │   ├── server/
 │   │   └── actions/             # Server actions
@@ -77,11 +82,12 @@ The schema centers around these entities (single clinic — no multi-branch/staf
 
 - **User** — client or admin (role-based)
 - **Service** — treatment offered, category, price, duration
-- **Availability** — clinic working hours / time-off / blocked slots
+- **Availability** — clinic working hours
 - **Appointment** — booking record linking client, service, time slot, and status
 - **Category** — service grouping
 
 Example status enum for appointments:
+
 ```prisma
 enum AppointmentStatus {
   PENDING
@@ -103,13 +109,13 @@ enum Role {
 
 - Node.js 18.18+ (or 20+)
 - PostgreSQL database (local or hosted, e.g. Supabase, Neon, Railway)
-- npm / pnpm / yarn
+- pnpm
 
 ### 1. Clone and Install
 
 ```bash
 git clone <repo-url>
-cd glowbook
+cd beauty-clinic
 pnpm install
 ```
 
@@ -126,22 +132,11 @@ DATABASE_URL="postgresql://user:password@localhost:5432/glowbook?schema=public"
 BETTER_AUTH_SECRET="your-secret-here"
 BETTER_AUTH_URL="http://localhost:3000"
 
-# Optional integrations
-RESEND_API_KEY=""
-TWILIO_ACCOUNT_SID=""
-TWILIO_AUTH_TOKEN=""
+STRIPE_SECRET_KEY="sk_test_xxxxxxxxxxxxx"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_xxxxxxxxxxxxx"
 ```
 
-### 3. Set Up shadcn/ui
-
-If not already initialized:
-
-```bash
-npx shadcn@latest init
-npx shadcn@latest add button card dialog form input select calendar badge table dropdown-menu tabs
-```
-
-### 4. Set Up the Database
+### 3. Set Up the Database
 
 ```bash
 npx prisma generate
@@ -149,21 +144,20 @@ npx prisma migrate dev --name init
 npx prisma db seed   # optional: seed sample services/clinics/admin user
 ```
 
-### 5. Run the Development Server
+### 4. Run the Development Server
 
 ```bash
 pnpm dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) for the client app and `/admin` for the admin dashboard (after logging in with an admin account).
-
+Visit [http://localhost:3000](http://localhost:3000) for the client app and `/admin/dashboard` for the admin dashboard (after logging in with an admin account).
 
 ## Authentication & Roles
 
 Role-based access is enforced via middleware and server-side session checks:
 
 - **Client** — can browse services and manage their own bookings only
-- **Admin** — full access to manage services, availability, and all bookings (represents clinic staff — no separate staff role)
+- **Admin** — full access to manage services, availability, and all bookings (represents clinic staff)
 
 ## Booking Flow (Client)
 
@@ -172,23 +166,6 @@ Role-based access is enforced via middleware and server-side session checks:
 3. Available time slots are computed from clinic `Availability` minus existing `Appointment`s
 4. Client selects a slot and confirms booking (auth required)
 5. Confirmation is created with status `PENDING` or `CONFIRMED`
-6. Optional email/SMS confirmation is sent
-
-## Deployment
-
-Recommended: [Vercel](https://vercel.com/) for the Next.js app, with a managed Postgres provider (e.g. Neon, Supabase, or Railway).
-
-1. Push the repo to GitHub
-2. Import into Vercel
-3. Set environment variables in the Vercel dashboard
-4. Run `npx prisma migrate deploy` against the production database (via a build step or manually)
-
-## Roadmap Ideas
-
-- [ ] Online payments / deposits (Stripe)
-- [ ] Waitlist for fully booked slots
-- [ ] Client loyalty points
-- [ ] Multi-language support
 
 ## License
 
