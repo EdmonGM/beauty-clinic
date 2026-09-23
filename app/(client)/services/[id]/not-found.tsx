@@ -11,7 +11,9 @@ export default function ServiceNotFound() {
         The treatment you&apos;re looking for doesn&apos;t exist or is no longer
         available.
       </p>
-      <Button render={<Link href="/services" />}>Back to services</Button>
+      <Button render={<Link href="/services" />} nativeButton={false}>
+        Back to services
+      </Button>
     </div>
   )
 }
