@@ -1,3 +1,4 @@
+"use client"
 import {
   CalendarClockIcon,
   CalendarDaysIcon,
@@ -17,9 +18,8 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { UserMenu } from "../auth/user-menu"
-import { getCachedSession } from "@/lib/auth-server-hooks"
-import { headers } from "next/headers"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboardIcon },
@@ -30,9 +30,8 @@ const navItems = [
   { href: "/users", label: "Users", icon: UsersIcon },
 ]
 
-export async function AdminSidebar() {
-  const session = await getCachedSession()
-  const pathname = (await headers()).get("x-pathname")
+export function AdminSidebar({ session }: { session: any }) {
+  const pathname = usePathname()
 
   return (
     <Sidebar>

@@ -41,6 +41,7 @@ export function UserMenu({ session }: UserMenuProps) {
   async function handleSignOut() {
     setSigningOut(true)
     await signOutAction()
+    router.push("/login")
     router.refresh()
     setSigningOut(false)
   }
