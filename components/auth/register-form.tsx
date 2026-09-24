@@ -25,6 +25,7 @@ export function RegisterForm() {
       name: "",
       email: "",
       password: "",
+      phone: "",
     },
   })
 
@@ -71,6 +72,25 @@ export function RegisterForm() {
                 aria-invalid={fieldState.invalid}
                 placeholder="Enter your email"
                 type="email"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+        <Controller
+          name="phone"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="register-form-email">
+                Phone (Optional)
+              </FieldLabel>
+              <Input
+                {...field}
+                id="register-form-email"
+                aria-invalid={fieldState.invalid}
+                placeholder="Enter your phone number"
+                type="tel"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>

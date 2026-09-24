@@ -7,6 +7,7 @@ import {
   ActionResponse,
   actionSuccess,
 } from "@/lib/action-response"
+import { prisma } from "../prisma"
 
 type LoginResponse = {
   username: string
@@ -35,16 +36,24 @@ export async function signUpAction({
   name,
   email,
   password,
+  phone,
 }: {
   name: string
   email: string
   password: string
+  phone?: string
 }): Promise<ActionResponse<any>> {
   try {
     const { user } = await auth.api.signUpEmail({
       body: { name, email, password },
       headers: await headers(),
     })
+    if (phone && phone !== "") {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { phone },
+      })
+    }
     return actionSuccess(user, "Singup success")
   } catch (error) {
     return actionError(error, "Signup failed")
