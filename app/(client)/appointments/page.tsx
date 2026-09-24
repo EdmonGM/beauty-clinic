@@ -53,7 +53,9 @@ export default async function AppointmentsPage() {
           <p className="text-muted-foreground">
             You don&apos;t have any appointments yet.
           </p>
-          <Button render={<Link href="/services" />}>Browse services</Button>
+          <Button render={<Link href="/services" />} nativeButton={false}>
+            Browse services
+          </Button>
         </div>
       ) : (
         <>
