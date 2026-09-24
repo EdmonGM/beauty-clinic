@@ -6,6 +6,8 @@ import { useEffect, useState, useTransition } from "react"
 import { createPaymentIntent } from "@/lib/actions/payments"
 import { PaymentForm } from "@/components/client/payment-form"
 import { useParams } from "next/navigation"
+import { Spinner } from "@/components/ui/spinner"
+import { PageLoader } from "@/components/page-loader"
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -29,7 +31,7 @@ export default function PaymentPage() {
     })
   }, [id])
 
-  if (isPending) return <div>Loading...</div>
+  if (isPending) return <PageLoader />
   if (!clientSecret) return <div>Failed to initialize payment</div>
 
   return (
