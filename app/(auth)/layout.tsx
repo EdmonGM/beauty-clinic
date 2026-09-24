@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar"
+import { Toaster } from "@/components/ui/sonner"
 
 export default function AuthLayout({
   children,
@@ -17,6 +18,7 @@ export default function AuthLayout({
           <span>© {new Date().getFullYear()}</span>
         </div>
       </footer>
+      <Toaster />
     </div>
   )
 }
