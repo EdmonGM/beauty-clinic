@@ -140,7 +140,11 @@ export function ServiceForm({
                   className="w-full"
                   aria-invalid={fieldState.invalid}
                 >
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue>
+                    {field.value
+                      ? categories.find((c) => c.id === field.value)?.name
+                      : "Select a category"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (

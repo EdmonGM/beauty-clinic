@@ -114,7 +114,11 @@ export function AdminAppointmentsFilter({
             }
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="All services" />
+              <SelectValue>
+                {values.serviceId
+                  ? services.find((s) => s.id === values.serviceId)?.name
+                  : "All services"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All services</SelectItem>
