@@ -36,33 +36,6 @@ export function ServiceDetail({ service, clinicHours }: ServiceDetailProps) {
             <p className="text-sm leading-relaxed">{service.description}</p>
           </CardContent>
         </Card>
-
-        {service.beforeAfterImages.length > 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Before &amp; after</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {service.beforeAfterImages.map((src, index) => (
-                  <div
-                    key={`${src}-${index}`}
-                    className="relative aspect-4/3 overflow-hidden rounded-2xl bg-muted"
-                  >
-                    <Image
-                      src={src}
-                      alt={`${service.name} result ${index + 1}`}
-                      fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      unoptimized
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
       </div>
 
       <Card className="h-fit">
