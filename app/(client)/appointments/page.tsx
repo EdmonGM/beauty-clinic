@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button"
 import { getClientAppointments } from "@/lib/actions/appointments"
 import { AppointmentCard } from "@/components/client/appointment-card"
 
-export const dynamic = "force-dynamic"
-
 export const metadata: Metadata = {
   title: "My Appointments",
 }

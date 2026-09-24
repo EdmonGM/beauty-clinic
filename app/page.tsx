@@ -5,8 +5,6 @@ import { getFeaturedServices } from "@/lib/actions/services"
 import Image from "next/image"
 import Link from "next/link"
 
-export const dynamic = "force-dynamic"
-
 export default async function HomePage() {
   const featured = await getFeaturedServices(4)
 
