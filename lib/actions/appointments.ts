@@ -45,19 +45,18 @@ export async function createAppointment(
 ): Promise<ActionResponse<string>> {
   try {
     const session = await requireClient()
-    const data = bookAppointmentSchema.parse(input)
 
     const service = await prisma.service.findFirst({
-      where: { id: data.serviceId, isActive: true },
+      where: { id: input.serviceId, isActive: true },
     })
     if (!service)
       return { success: false, error: null, message: "Service not found" }
 
-    const date = parseDateStr(data.date)
+    const date = parseDateStr(input.date)
 
     const validation = await validateSlot(
       date,
-      data.timeSlot,
+      input.timeSlot,
       service.durationMinutes
     )
     if (!validation.success) {
@@ -66,28 +65,14 @@ export async function createAppointment(
 
     const { startsAt, endsAt } = validation
 
-    // Re-check for conflicts inside a transaction immediately before create.
-    const appointment = await prisma.$transaction(async (tx) => {
-      const conflict = await tx.appointment.findFirst({
-        where: {
-          status: { not: "CANCELLED" },
-          startsAt: { lt: endsAt },
-          endsAt: { gt: startsAt },
-        },
-      })
-      if (conflict) {
-        throw new Error("SLOT_TAKEN")
-      }
-
-      return tx.appointment.create({
-        data: {
-          clientId: session.user.id,
-          serviceId: data.serviceId,
-          startsAt,
-          endsAt,
-          notes: data.notes || null,
-        },
-      })
+    const appointment = await prisma.appointment.create({
+      data: {
+        clientId: session.user.id,
+        serviceId: input.serviceId,
+        startsAt,
+        endsAt,
+        notes: input.notes || null,
+      },
     })
 
     return {
@@ -101,14 +86,6 @@ export async function createAppointment(
         success: false,
         error,
         message: "You need to be logged in to book an appointment",
-      }
-    }
-
-    if (error instanceof Error && error.message === "SLOT_TAKEN") {
-      return {
-        success: false,
-        error,
-        message: "This time slot is already booked",
       }
     }
     return { success: false, error, message: "Failed to create appointment" }
