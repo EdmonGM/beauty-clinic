@@ -1,7 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { ActionResponse } from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { CategoryInput } from "@/lib/validations"
 import { CategoryWithServices } from "@/types/category"
 import { requireAdmin } from "../auth-server-hooks"

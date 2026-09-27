@@ -37,7 +37,7 @@ import {
 } from "@/lib/appointment-status"
 import { formatDuration, formatPrice } from "@/lib/format"
 import { updateAppointmentStatus } from "@/lib/actions/admin-appointments"
-import { ActionResponse } from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { AppointmentsStatusBadge } from "./appointments-status-badge"
 
 type AppointmentsTableProps = {

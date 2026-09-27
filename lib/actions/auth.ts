@@ -2,11 +2,7 @@
 
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
-import {
-  actionError,
-  ActionResponse,
-  actionSuccess,
-} from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { prisma } from "../prisma"
 
 type LoginResponse = {
@@ -26,9 +22,13 @@ export async function signInAction({
       body: { email, password },
       headers: await headers(),
     })
-    return actionSuccess({ username: user.name, token }, "Log in success")
+    return {
+      success: true,
+      data: { username: user.name, token },
+      message: "Log in success",
+    }
   } catch (error) {
-    return actionError(error, "Incorrect email or password")
+    return { success: false, error, message: "Incorrect email or password" }
   }
 }
 
@@ -54,9 +54,9 @@ export async function signUpAction({
         data: { phone },
       })
     }
-    return actionSuccess(user, "Singup success")
+    return { success: true, data: user, message: "Singup success" }
   } catch (error) {
-    return actionError(error, "Signup failed")
+    return { success: false, error, message: "Signup failed" }
   }
 }
 
@@ -65,8 +65,8 @@ export async function signOutAction(): Promise<ActionResponse<any>> {
     await auth.api.signOut({
       headers: await headers(),
     })
-    return actionSuccess(null, "Signout success")
+    return { success: true, data: null, message: "Signout success" }
   } catch (error) {
-    return actionError(error, "Signout failed")
+    return { success: false, error, message: "Signout failed" }
   }
 }

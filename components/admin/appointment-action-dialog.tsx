@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ActionResponse } from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 
 type AppointmentActionDialogProps = {
   open: boolean

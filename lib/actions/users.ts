@@ -1,11 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import {
-  actionError,
-  ActionResponse,
-  actionSuccess,
-} from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { requireAdmin } from "@/lib/auth-server-hooks"
 import { AdminClientDetail, AdminClientListItem } from "@/types/user"
 
@@ -50,9 +46,9 @@ export async function getAllClients(
       appointmentCount: client._count.appointments,
     }))
 
-    return actionSuccess(items, "Get clients success")
+    return { success: true, data: items, message: "Get clients success" }
   } catch (error) {
-    return actionError(error, "Get clients error")
+    return { success: false, error, message: "Get clients error" }
   }
 }
 
@@ -86,12 +82,12 @@ export async function getClientById(
     })
 
     if (!client) {
-      return actionSuccess(null, "Client not found")
+      return { success: true, data: null, message: "Client not found" }
     }
 
-    return actionSuccess(client, "Get client success")
+    return { success: true, data: client, message: "Get client success" }
   } catch (error) {
-    return actionError(error, "Get client error")
+    return { success: false, error, message: "Get client error" }
   }
 }
 
@@ -107,7 +103,7 @@ export async function updateClientNotes(
       select: { id: true },
     })
     if (!existing) {
-      return actionError(null, "Client not found")
+      return { success: false, error: null, message: "Client not found" }
     }
 
     const note = input === "" ? null : input
@@ -117,8 +113,8 @@ export async function updateClientNotes(
       data: { notes: note },
     })
 
-    return actionSuccess(null, "Notes updated")
+    return { success: true, data: null, message: "Notes updated" }
   } catch (error) {
-    return actionError(error, "Failed to update notes")
+    return { success: false, error, message: "Failed to update notes" }
   }
 }

@@ -1,11 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import {
-  actionError,
-  ActionResponse,
-  actionSuccess,
-} from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { ServiceInput } from "@/lib/validations"
 import { ServiceWithCategory } from "@/types/service"
 import { requireAdmin } from "../auth-server-hooks"
@@ -33,9 +29,9 @@ export async function getAllServices({
       orderBy: { name: "asc" },
     })
 
-    return actionSuccess(services, "Get services success")
+    return { success: true, data: services, message: "Get services success" }
   } catch (error) {
-    return actionError(error, "Get services error")
+    return { success: false, error, message: "Get services error" }
   }
 }
 
@@ -49,9 +45,13 @@ export async function getFeaturedServices(
       orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
       take: limit,
     })
-    return actionSuccess(services, "Get featured survices success")
+    return {
+      success: true,
+      data: services,
+      message: "Get featured survices success",
+    }
   } catch (error) {
-    return actionError(error, "Get featured services failed")
+    return { success: false, error, message: "Get featured services failed" }
   }
 }
 
@@ -64,9 +64,13 @@ export async function getServiceById(
       include: { category: true },
     })
 
-    return actionSuccess(service, "Get service by id success")
+    return {
+      success: true,
+      data: service,
+      message: "Get service by id success",
+    }
   } catch (error) {
-    return actionError(error, "Get service by id error")
+    return { success: false, error, message: "Get service by id error" }
   }
 }
 
@@ -85,9 +89,9 @@ export async function createService(
         isActive: input.isActive,
       },
     })
-    return actionSuccess(service.id, "Service created")
+    return { success: true, data: service.id, message: "Service created" }
   } catch (error) {
-    return actionError(error, "Failed to create service")
+    return { success: false, error, message: "Failed to create service" }
   }
 }
 
@@ -108,9 +112,9 @@ export async function updateService(
         isActive: input.isActive,
       },
     })
-    return actionSuccess(service.id, "Service updated")
+    return { success: true, data: service.id, message: "Service updated" }
   } catch (error) {
-    return actionError(error, "Failed to update service")
+    return { success: false, error, message: "Failed to update service" }
   }
 }
 
@@ -121,14 +125,15 @@ export async function deleteService(id: string): Promise<ActionResponse<null>> {
       where: { serviceId: id },
     })
     if (appointmentCount > 0) {
-      return actionError(
-        null,
-        "Cannot delete a service with existing appointments"
-      )
+      return {
+        success: false,
+        error: null,
+        message: "Cannot delete a service with existing appointments",
+      }
     }
     await prisma.service.delete({ where: { id } })
-    return actionSuccess(null, "Service deleted")
+    return { success: true, data: null, message: "Service deleted" }
   } catch (error) {
-    return actionError(error, "Failed to delete service")
+    return { success: false, error, message: "Failed to delete service" }
   }
 }

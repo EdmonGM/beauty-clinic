@@ -2,11 +2,7 @@
 
 import { stripe } from "@/lib/stripe"
 import { requireClient } from "@/lib/auth-server-hooks"
-import {
-  actionError,
-  ActionResponse,
-  actionSuccess,
-} from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { prisma } from "@/lib/prisma"
 
 export async function createPaymentIntent(
@@ -21,7 +17,7 @@ export async function createPaymentIntent(
     })
 
     if (!appointment) {
-      return actionError(null, "Appointment not found")
+      return { success: false, error: null, message: "Appointment not found" }
     }
 
     const amount = Math.round(appointment.service.price * 100)
@@ -37,17 +33,22 @@ export async function createPaymentIntent(
     })
 
     if (!paymentIntent.client_secret)
-      return actionError(undefined, "Something went wrong!")
+      return {
+        success: false,
+        error: undefined,
+        message: "Something went wrong!",
+      }
 
-    return actionSuccess(
-      {
+    return {
+      success: true,
+      data: {
         clientSecret: paymentIntent.client_secret,
         serviceName: appointment.service.name,
       },
-      "Payment intent created"
-    )
+      message: "Payment intent created",
+    }
   } catch (error) {
-    return actionError(error, "Failed to create payment intent")
+    return { success: false, error, message: "Failed to create payment intent" }
   }
 }
 
@@ -63,13 +64,13 @@ export async function confirmPayment(
     })
 
     if (!appointment) {
-      return actionError(null, "Appointment not found")
+      return { success: false, error: null, message: "Appointment not found" }
     }
 
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
 
     if (paymentIntent.status !== "succeeded") {
-      return actionError(null, "Payment not confirmed")
+      return { success: false, error: null, message: "Payment not confirmed" }
     }
 
     await prisma.appointment.update({
@@ -80,8 +81,8 @@ export async function confirmPayment(
       },
     })
 
-    return actionSuccess(null, "Payment confirmed")
+    return { success: true, data: null, message: "Payment confirmed" }
   } catch (error) {
-    return actionError(error, "Failed to confirm payment")
+    return { success: false, error, message: "Failed to confirm payment" }
   }
 }

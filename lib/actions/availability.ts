@@ -1,11 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import {
-  actionError,
-  ActionResponse,
-  actionSuccess,
-} from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { requireAdmin } from "@/lib/auth-server-hooks"
 import {
   createAvailabilitySchema,
@@ -21,9 +17,13 @@ export async function getClinicAvailability(): Promise<
     const availability = await prisma.availability.findMany({
       orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
     })
-    return actionSuccess(availability, "Get clinic availability success")
+    return {
+      success: true,
+      data: availability,
+      message: "Get clinic availability success",
+    }
   } catch (error) {
-    return actionError(error, "Get clinic availability error")
+    return { success: false, error, message: "Get clinic availability error" }
   }
 }
 
@@ -39,10 +39,11 @@ export async function createAvailability(
       where: { dayOfWeek: data.dayOfWeek },
     })
     if (existing) {
-      return actionError(
-        null,
-        `${data.dayOfWeek} already has availability hours set`
-      )
+      return {
+        success: false,
+        error: null,
+        message: `${data.dayOfWeek} already has availability hours set`,
+      }
     }
 
     const availability = await prisma.availability.create({
@@ -53,9 +54,13 @@ export async function createAvailability(
       },
     })
 
-    return actionSuccess(availability.id, "Availability created")
+    return {
+      success: true,
+      data: availability.id,
+      message: "Availability created",
+    }
   } catch (error) {
-    return actionError(error, "Failed to create availability")
+    return { success: false, error, message: "Failed to create availability" }
   }
 }
 
@@ -71,7 +76,7 @@ export async function updateAvailability(
       where: { id },
     })
     if (!existing) {
-      return actionError(null, "Availability not found")
+      return { success: false, error: null, message: "Availability not found" }
     }
 
     // If changing the day, check if the new day already has hours
@@ -80,10 +85,11 @@ export async function updateAvailability(
         where: { dayOfWeek: data.dayOfWeek },
       })
       if (conflicting) {
-        return actionError(
-          null,
-          `${data.dayOfWeek} already has availability hours set`
-        )
+        return {
+          success: false,
+          error: null,
+          message: `${data.dayOfWeek} already has availability hours set`,
+        }
       }
     }
 
@@ -96,9 +102,13 @@ export async function updateAvailability(
       },
     })
 
-    return actionSuccess(availability.id, "Availability updated")
+    return {
+      success: true,
+      data: availability.id,
+      message: "Availability updated",
+    }
   } catch (error) {
-    return actionError(error, "Failed to update availability")
+    return { success: false, error, message: "Failed to update availability" }
   }
 }
 
@@ -112,15 +122,15 @@ export async function deleteAvailability(
       where: { id },
     })
     if (!existing) {
-      return actionError(null, "Availability not found")
+      return { success: false, error: null, message: "Availability not found" }
     }
 
     await prisma.availability.delete({
       where: { id },
     })
 
-    return actionSuccess(null, "Availability deleted")
+    return { success: true, data: null, message: "Availability deleted" }
   } catch (error) {
-    return actionError(error, "Failed to delete availability")
+    return { success: false, error, message: "Failed to delete availability" }
   }
 }

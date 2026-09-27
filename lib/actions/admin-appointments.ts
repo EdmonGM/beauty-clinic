@@ -1,11 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import {
-  actionError,
-  ActionResponse,
-  actionSuccess,
-} from "@/lib/action-response"
+import { ActionResponse } from "@/types/action-response"
 import { requireAdmin } from "@/lib/auth-server-hooks"
 import { endOfDay, startOfDay } from "date-fns"
 import { parseDateStr } from "@/lib/format"
@@ -33,12 +29,17 @@ export async function getAdminAvailableSlots(
 ): Promise<ActionResponse<AvailableSlot[]>> {
   try {
     requireAdmin()
-    return actionSuccess(
-      await generateAvailableSlots(date, durationMinutes, excludeAppointmentId),
-      "Get available slots success"
-    )
+    return {
+      success: true,
+      data: await generateAvailableSlots(
+        date,
+        durationMinutes,
+        excludeAppointmentId
+      ),
+      message: "Get available slots success",
+    }
   } catch (error) {
-    return actionError(error, "Get available slots error")
+    return { success: false, error, message: "Get available slots error" }
   }
 }
 
@@ -76,9 +77,13 @@ export async function getAdminAppointments(
       orderBy: { startsAt: "desc" },
     })
 
-    return actionSuccess(appointments, "Get appointments success")
+    return {
+      success: true,
+      data: appointments,
+      message: "Get appointments success",
+    }
   } catch (error) {
-    return actionError(error, "Get appointments error")
+    return { success: false, error, message: "Get appointments error" }
   }
 }
 
@@ -103,9 +108,13 @@ export async function getAdminAppointmentCounts(): Promise<
       counts[row.status] = row._count._all
     }
 
-    return actionSuccess(counts, "Get appointment counts success")
+    return {
+      success: true,
+      data: counts,
+      message: "Get appointment counts success",
+    }
   } catch (error) {
-    return actionError(error, "Get appointment counts error")
+    return { success: false, error, message: "Get appointment counts error" }
   }
 }
 
@@ -118,13 +127,15 @@ export async function updateAppointmentStatus(
     const appointment = await prisma.appointment.findFirst({
       where: { id: appointmentId },
     })
-    if (!appointment) return actionError(null, "Appointment not found")
+    if (!appointment)
+      return { success: false, error: null, message: "Appointment not found" }
 
     if (!canUpdateAppointmentStatus(appointment.status, status)) {
-      return actionError(
-        null,
-        `Appointment cannot be moved from ${appointment.status} to ${status}`
-      )
+      return {
+        success: false,
+        error: null,
+        message: `Appointment cannot be moved from ${appointment.status} to ${status}`,
+      }
     }
 
     await prisma.appointment.update({
@@ -132,9 +143,13 @@ export async function updateAppointmentStatus(
       data: { status },
     })
 
-    return actionSuccess(null, "Appointment status updated")
+    return { success: true, data: null, message: "Appointment status updated" }
   } catch (error) {
-    return actionError(error, "Failed to update appointment status")
+    return {
+      success: false,
+      error,
+      message: "Failed to update appointment status",
+    }
   }
 }
 
@@ -150,9 +165,14 @@ export async function rescheduleAppointment(
       where: { id: appointmentId },
       include: { service: true },
     })
-    if (!appointment) return actionError(null, "Appointment not found")
+    if (!appointment)
+      return { success: false, error: null, message: "Appointment not found" }
     if (!canReschedule(appointment.status)) {
-      return actionError(null, "This appointment cannot be rescheduled")
+      return {
+        success: false,
+        error: null,
+        message: "This appointment cannot be rescheduled",
+      }
     }
 
     const date = parseDateStr(data.date)
@@ -164,7 +184,7 @@ export async function rescheduleAppointment(
       appointmentId
     )
     if (!validation.success) {
-      return actionError(null, validation.error)
+      return { success: false, error: null, message: validation.error }
     }
 
     const { startsAt, endsAt } = validation
@@ -188,11 +208,19 @@ export async function rescheduleAppointment(
       })
     })
 
-    return actionSuccess(null, "Appointment rescheduled")
+    return { success: true, data: null, message: "Appointment rescheduled" }
   } catch (error) {
     if (error instanceof Error && error.message === "SLOT_TAKEN") {
-      return actionError(error, "This time slot is already booked")
+      return {
+        success: false,
+        error,
+        message: "This time slot is already booked",
+      }
     }
-    return actionError(error, "Failed to reschedule appointment")
+    return {
+      success: false,
+      error,
+      message: "Failed to reschedule appointment",
+    }
   }
 }
