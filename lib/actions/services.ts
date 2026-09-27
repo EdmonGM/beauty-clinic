@@ -13,14 +13,11 @@ export async function getAllServices({
   isActive?: boolean
   categoryName?: string
 }): Promise<ActionResponse<ServiceWithCategory[]>> {
-  const where: any = {}
-  if (isActive !== undefined) {
-    where.isActive = isActive
-  }
-  if (categoryName) {
-    where.category = {
+  const where = {
+    isActive,
+    category: {
       name: categoryName,
-    }
+    },
   }
   try {
     const services = await prisma.service.findMany({
