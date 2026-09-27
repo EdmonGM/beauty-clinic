@@ -3,10 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { ActionResponse } from "@/types/action-response"
 import { requireClient } from "@/lib/auth-server-hooks"
-import {
-  bookAppointmentSchema,
-  BookAppointmentInput,
-} from "@/lib/validations/appointment"
+import { BookAppointmentInput } from "@/lib/validations/appointment"
 import { AvailableSlot, AppointmentWithService } from "@/types/appointment"
 import { parseDateStr } from "@/lib/format"
 import { validateSlot } from "../slot-validator"
