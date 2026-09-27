@@ -1,12 +1,8 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import {
-  actionError,
-  ActionResponse,
-  actionSuccess,
-} from "@/lib/action-response"
-import { categorySchema, CategoryInput } from "@/lib/validations"
+import { ActionResponse } from "@/lib/action-response"
+import { CategoryInput } from "@/lib/validations"
 import { CategoryWithServices } from "@/types/category"
 import { requireAdmin } from "../auth-server-hooks"
 
@@ -19,13 +15,21 @@ export async function getAllCategories(): Promise<
       orderBy: { name: "asc" },
     })
 
-    return actionSuccess(categories, "Get categories success")
+    return {
+      success: true,
+      data: categories,
+      message: "Get categories success",
+    }
   } catch (error) {
-    return actionError(error, "Get categories error")
+    return {
+      success: false,
+      error,
+      message: "Get categories error",
+    }
   }
 }
 
-export async function getCategoryByIdAdmin(
+export async function getCategoryById(
   id: string
 ): Promise<ActionResponse<CategoryWithServices | null>> {
   try {
@@ -35,9 +39,17 @@ export async function getCategoryByIdAdmin(
       include: { services: true },
     })
 
-    return actionSuccess(category, "Get category by id success")
+    return {
+      success: true,
+      data: category,
+      message: "Get category by id success",
+    }
   } catch (error) {
-    return actionError(error, "Get category by id error")
+    return {
+      success: false,
+      error,
+      message: "Get category by id error",
+    }
   }
 }
 
@@ -46,16 +58,23 @@ export async function createCategory(
 ): Promise<ActionResponse<string>> {
   try {
     await requireAdmin()
-    const data = categorySchema.parse(input)
     const category = await prisma.category.create({
       data: {
-        name: data.name,
-        description: data.description,
+        name: input.name,
+        description: input.description,
       },
     })
-    return actionSuccess(category.id, "Category created")
+    return {
+      success: true,
+      data: category.id,
+      message: "Category created",
+    }
   } catch (error) {
-    return actionError(error, "Failed to create category")
+    return {
+      success: false,
+      error,
+      message: "Failed to create category",
+    }
   }
 }
 
@@ -65,17 +84,24 @@ export async function updateCategory(
 ): Promise<ActionResponse<string>> {
   try {
     await requireAdmin()
-    const data = categorySchema.parse(input)
     const category = await prisma.category.update({
       where: { id },
       data: {
-        name: data.name,
-        description: data.description,
+        name: input.name,
+        description: input.description,
       },
     })
-    return actionSuccess(category.id, "Category updated")
+    return {
+      success: true,
+      data: category.id,
+      message: "Category updated",
+    }
   } catch (error) {
-    return actionError(error, "Failed to update category")
+    return {
+      success: false,
+      error,
+      message: "Failed to update category",
+    }
   }
 }
 
@@ -88,14 +114,23 @@ export async function deleteCategory(
       where: { categoryId: id },
     })
     if (serviceCount > 0) {
-      return actionError(
-        null,
-        "Cannot delete a category with existing services"
-      )
+      return {
+        success: false,
+        error: null,
+        message: "Cannot delete a category with existing services",
+      }
     }
     await prisma.category.delete({ where: { id } })
-    return actionSuccess(null, "Category deleted")
+    return {
+      success: true,
+      data: null,
+      message: "Category deleted",
+    }
   } catch (error) {
-    return actionError(error, "Failed to delete category")
+    return {
+      success: false,
+      error,
+      message: "Failed to delete category",
+    }
   }
 }

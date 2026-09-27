@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { CategoryEditForm } from "../_components/category-edit-form"
-import { getCategoryByIdAdmin } from "@/lib/actions/categories"
+import { getCategoryById } from "@/lib/actions/categories"
 
 export default async function AdminEditCategoryPage({
   params,
@@ -8,7 +8,7 @@ export default async function AdminEditCategoryPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const category = await getCategoryByIdAdmin(id)
+  const category = await getCategoryById(id)
 
   if (!category.success) {
     return <p>ERROR</p>
