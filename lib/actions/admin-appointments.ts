@@ -5,10 +5,7 @@ import { ActionResponse } from "@/types/action-response"
 import { requireAdmin } from "@/lib/auth-server-hooks"
 import { endOfDay, startOfDay } from "date-fns"
 import { parseDateStr } from "@/lib/format"
-import {
-  canReschedule,
-  canUpdateAppointmentStatus,
-} from "@/lib/appointment-status"
+import { canReschedule } from "@/lib/appointment-status"
 import {
   AdminAppointment,
   AdminAppointmentsFilterInput,
@@ -48,27 +45,25 @@ export async function getAdminAppointments(
 ): Promise<ActionResponse<AdminAppointment[]>> {
   try {
     await requireAdmin()
-    // const data = adminBookingsFilterSchema.parse(filter)
-    const data = filter
 
     const appointments = await prisma.appointment.findMany({
       where: {
-        ...(data.status && { status: data.status }),
-        ...(data.date && {
-          startsAt: {
-            gte: startOfDay(parseDateStr(data.date)),
-            lt: endOfDay(parseDateStr(data.date)),
-          },
-        }),
-        ...(data.serviceId && { serviceId: data.serviceId }),
-        ...(data.query && {
-          client: {
-            OR: [
-              { name: { contains: data.query, mode: "insensitive" } },
-              { email: { contains: data.query, mode: "insensitive" } },
-            ],
-          },
-        }),
+        status: filter.status,
+        startsAt: filter.date
+          ? {
+              gte: startOfDay(parseDateStr(filter.date)),
+              lt: endOfDay(parseDateStr(filter.date)),
+            }
+          : undefined,
+        serviceId: filter.serviceId,
+        client: filter.query
+          ? {
+              OR: [
+                { name: { contains: filter.query, mode: "insensitive" } },
+                { email: { contains: filter.query, mode: "insensitive" } },
+              ],
+            }
+          : undefined,
       },
       include: {
         client: { select: { id: true, name: true, email: true, phone: true } },
@@ -130,14 +125,6 @@ export async function updateAppointmentStatus(
     if (!appointment)
       return { success: false, error: null, message: "Appointment not found" }
 
-    if (!canUpdateAppointmentStatus(appointment.status, status)) {
-      return {
-        success: false,
-        error: null,
-        message: `Appointment cannot be moved from ${appointment.status} to ${status}`,
-      }
-    }
-
     await prisma.appointment.update({
       where: { id: appointmentId },
       data: { status },
@@ -159,7 +146,6 @@ export async function rescheduleAppointment(
 ): Promise<ActionResponse<null>> {
   try {
     await requireAdmin()
-    const data = rescheduleAppointmentSchema.parse(input)
 
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
@@ -175,11 +161,11 @@ export async function rescheduleAppointment(
       }
     }
 
-    const date = parseDateStr(data.date)
+    const date = parseDateStr(input.date)
 
     const validation = await validateSlot(
       date,
-      data.timeSlot,
+      input.timeSlot,
       appointment.service.durationMinutes,
       appointmentId
     )
@@ -189,34 +175,13 @@ export async function rescheduleAppointment(
 
     const { startsAt, endsAt } = validation
 
-    await prisma.$transaction(async (tx) => {
-      const conflict = await tx.appointment.findFirst({
-        where: {
-          id: { not: appointmentId },
-          status: { not: "CANCELLED" },
-          startsAt: { lt: endsAt },
-          endsAt: { gt: startsAt },
-        },
-      })
-      if (conflict) {
-        throw new Error("SLOT_TAKEN")
-      }
-
-      await tx.appointment.update({
-        where: { id: appointmentId },
-        data: { startsAt, endsAt },
-      })
+    await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { startsAt, endsAt },
     })
 
     return { success: true, data: null, message: "Appointment rescheduled" }
   } catch (error) {
-    if (error instanceof Error && error.message === "SLOT_TAKEN") {
-      return {
-        success: false,
-        error,
-        message: "This time slot is already booked",
-      }
-    }
     return {
       success: false,
       error,
