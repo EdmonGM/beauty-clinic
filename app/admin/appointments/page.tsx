@@ -40,7 +40,7 @@ export default async function AdminAppointmentsPage({
     await Promise.all([
       getAdminAppointments(filter),
       getAdminAppointmentCounts(),
-      getAllServices(),
+      getAllServices({}),
     ])
 
   if (

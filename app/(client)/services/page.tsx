@@ -1,7 +1,7 @@
 import { CategoryNav } from "@/components/client/category-nav"
 import { ServiceCard } from "@/components/client/service-card"
 import { getAllCategories } from "@/lib/actions/categories"
-import { getActiveServices } from "@/lib/actions/services"
+import { getAllServices } from "@/lib/actions/services"
 
 type ServicesPageProps = {
   searchParams: Promise<{ category?: string | string[] }>
@@ -15,7 +15,7 @@ export default async function ServicesPage({
 
   const [categories, services] = await Promise.all([
     getAllCategories(),
-    getActiveServices(categoryName),
+    getAllServices({ isActive: true, categoryName }),
   ])
 
   if (!services.success || !services.data || !categories.success) return

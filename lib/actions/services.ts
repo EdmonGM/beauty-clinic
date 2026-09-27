@@ -6,16 +6,29 @@ import {
   ActionResponse,
   actionSuccess,
 } from "@/lib/action-response"
-import { serviceSchema, ServiceInput } from "@/lib/validations"
+import { ServiceInput } from "@/lib/validations"
 import { ServiceWithCategory } from "@/types/service"
 import { requireAdmin } from "../auth-server-hooks"
 
-export async function getAllServices(): Promise<
-  ActionResponse<ServiceWithCategory[]>
-> {
+export async function getAllServices({
+  isActive,
+  categoryName,
+}: {
+  isActive?: boolean
+  categoryName?: string
+}): Promise<ActionResponse<ServiceWithCategory[]>> {
+  const where: any = {}
+  if (isActive !== undefined) {
+    where.isActive = isActive
+  }
+  if (categoryName) {
+    where.category = {
+      name: categoryName,
+    }
+  }
   try {
-    await requireAdmin()
     const services = await prisma.service.findMany({
+      where,
       include: { category: true },
       orderBy: { name: "asc" },
     })
@@ -23,41 +36,6 @@ export async function getAllServices(): Promise<
     return actionSuccess(services, "Get services success")
   } catch (error) {
     return actionError(error, "Get services error")
-  }
-}
-
-export async function getServiceByIdAdmin(
-  id: string
-): Promise<ActionResponse<ServiceWithCategory | null>> {
-  try {
-    await requireAdmin()
-    const service = await prisma.service.findFirst({
-      where: { id },
-      include: { category: true },
-    })
-
-    return actionSuccess(service, "Get service by id success")
-  } catch (error) {
-    return actionError(error, "Get service by id error")
-  }
-}
-
-export async function getActiveServices(
-  categoryName?: string
-): Promise<ActionResponse<ServiceWithCategory[]>> {
-  try {
-    const services = await prisma.service.findMany({
-      where: {
-        isActive: true,
-        ...(categoryName ? { category: { name: categoryName } } : {}),
-      },
-      include: { category: true },
-      orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
-    })
-
-    return actionSuccess(services, "Get active survices success")
-  } catch (error) {
-    return actionError(error, "Get active services failed")
   }
 }
 
@@ -82,7 +60,7 @@ export async function getServiceById(
 ): Promise<ActionResponse<ServiceWithCategory | null>> {
   try {
     const service = await prisma.service.findFirst({
-      where: { id, isActive: true },
+      where: { id },
       include: { category: true },
     })
 
@@ -97,15 +75,14 @@ export async function createService(
 ): Promise<ActionResponse<string>> {
   try {
     await requireAdmin()
-    const data = serviceSchema.parse(input)
     const service = await prisma.service.create({
       data: {
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        durationMinutes: data.durationMinutes,
-        categoryId: data.categoryId,
-        isActive: data.isActive,
+        name: input.name,
+        description: input.description,
+        price: input.price,
+        durationMinutes: input.durationMinutes,
+        categoryId: input.categoryId,
+        isActive: input.isActive,
       },
     })
     return actionSuccess(service.id, "Service created")
@@ -120,36 +97,18 @@ export async function updateService(
 ): Promise<ActionResponse<string>> {
   try {
     await requireAdmin()
-    const data = serviceSchema.parse(input)
     const service = await prisma.service.update({
       where: { id },
       data: {
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        durationMinutes: data.durationMinutes,
-        categoryId: data.categoryId,
-        isActive: data.isActive,
+        name: input.name,
+        description: input.description,
+        price: input.price,
+        durationMinutes: input.durationMinutes,
+        categoryId: input.categoryId,
+        isActive: input.isActive,
       },
     })
     return actionSuccess(service.id, "Service updated")
-  } catch (error) {
-    return actionError(error, "Failed to update service")
-  }
-}
-
-export async function toggleServiceActive(
-  id: string
-): Promise<ActionResponse<boolean>> {
-  try {
-    await requireAdmin()
-    const service = await prisma.service.findFirst({ where: { id } })
-    if (!service) return actionError(null, "Service not found")
-    const updated = await prisma.service.update({
-      where: { id },
-      data: { isActive: !service.isActive },
-    })
-    return actionSuccess(updated.isActive, "Service status updated")
   } catch (error) {
     return actionError(error, "Failed to update service")
   }

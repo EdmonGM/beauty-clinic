@@ -22,7 +22,7 @@ import {
   PowerIcon,
   TrashIcon,
 } from "lucide-react"
-import { toggleServiceActive } from "@/lib/actions/services"
+import { updateService } from "@/lib/actions/services"
 import { ServiceWithCategory } from "@/types/service"
 import Link from "next/link"
 
@@ -36,7 +36,13 @@ export function AdminServiceCard({
   onDeleteAction,
 }: AdminServiceCardProps) {
   async function handleServiceToggle() {
-    await toggleServiceActive(service.id)
+    await updateService(service.id, {
+      name: service.name,
+      isActive: !service.isActive,
+      price: service.price,
+      categoryId: service.categoryId,
+      durationMinutes: service.durationMinutes,
+    })
     window.location.reload()
   }
 

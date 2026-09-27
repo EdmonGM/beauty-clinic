@@ -5,8 +5,7 @@ import { getAllServices } from "@/lib/actions/services"
 import Link from "next/link"
 
 export default async function AdminServicesPage() {
-  const response = await getAllServices()
-  console.log(response)
+  const response = await getAllServices({})
 
   if (!response.success) {
     return <p>ERROR</p>

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { ServiceEditForm } from "../_components/service-edit-form"
-import { getServiceByIdAdmin } from "@/lib/actions/services"
 import { getAllCategories } from "@/lib/actions/categories"
+import { getServiceById } from "@/lib/actions/services"
 
 export default async function AdminEditServicePage({
   params,
@@ -10,7 +10,7 @@ export default async function AdminEditServicePage({
 }) {
   const { id } = await params
   const [service, categories] = await Promise.all([
-    getServiceByIdAdmin(id),
+    getServiceById(id),
     getAllCategories(),
   ])
 
