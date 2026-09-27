@@ -27,16 +27,3 @@ export type AdminClientAppointments = {
   status: AppointmentStatus
   service: { id: string; name: string }
 }
-
-export type ClientPage<T> = {
-  items: T[]
-  total: number
-  page: number
-  pageSize: number
-  totalPages: number
-}
-
-export type ClientWithBookings = {
-  client: AdminClientDetail
-  bookings: ClientPage<AdminClientAppointments>
-}

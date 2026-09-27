@@ -14,52 +14,47 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ClientPagination } from "./client-pagination"
 import { getAllClients } from "@/lib/actions/users"
-import { AdminClientListItem, ClientPage } from "@/types/user"
+import { AdminClientListItem } from "@/types/user"
 import { format } from "date-fns"
 
 type LoadedPage = {
   query: string
-  page: number
-  data: ClientPage<AdminClientListItem>
+  data: AdminClientListItem[]
 }
 
 type UsersListProps = {
-  initialData: ClientPage<AdminClientListItem>
+  initialData: AdminClientListItem[]
 }
 
 export function UsersList({ initialData }: UsersListProps) {
   const [loaded, setLoaded] = useState<LoadedPage>({
     query: "",
-    page: 1,
     data: initialData,
   })
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
-  const [page, setPage] = useState(1)
   const [error, setError] = useState<string | null>(null)
 
-  const loading = loaded.query !== query || loaded.page !== page
+  const loading = loaded.query !== query
 
   useEffect(() => {
     const id = setTimeout(() => {
       setQuery(queryInput.trim().slice(0, 100))
-      setPage(1)
     }, 350)
     return () => clearTimeout(id)
   }, [queryInput])
 
   useEffect(() => {
-    getAllClients(query, page).then((res) => {
+    getAllClients(query).then((res) => {
       if (res.success) {
         setError(null)
-        setLoaded({ query, page, data: res.data })
+        setLoaded({ query, data: res.data })
       } else {
         setError(res.message)
       }
     })
-  }, [query, page])
+  }, [query])
 
   const data = loaded.data
 
@@ -67,7 +62,7 @@ export function UsersList({ initialData }: UsersListProps) {
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <h1 className="font-heading text-2xl font-semibold">Clients</h1>
-        {data.total > 0 && <Badge variant="secondary">{data.total}</Badge>}
+        {data.length > 0 && <Badge variant="secondary">{data.length}</Badge>}
       </div>
 
       <div className="relative max-w-sm">
@@ -89,7 +84,7 @@ export function UsersList({ initialData }: UsersListProps) {
         </div>
       )}
 
-      {!error && loading && data.items.length === 0 && (
+      {!error && loading && data.length === 0 && (
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-14 w-full" />
@@ -97,7 +92,7 @@ export function UsersList({ initialData }: UsersListProps) {
         </div>
       )}
 
-      {!error && !loading && data.items.length === 0 && (
+      {!error && !loading && data.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed p-12 text-center">
           <p className="text-muted-foreground">
             {query ? "No clients match your search." : "No clients yet."}
@@ -105,56 +100,43 @@ export function UsersList({ initialData }: UsersListProps) {
         </div>
       )}
 
-      {!error && data.items.length > 0 && (
-        <>
-          <div className="rounded-2xl border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Appointments</TableHead>
-                  <TableHead>Joined</TableHead>
+      {!error && data.length > 0 && (
+        <div className="rounded-2xl border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Client</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Appointments</TableHead>
+                <TableHead>Joined</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((client) => (
+                <TableRow key={client.id}>
+                  <TableCell>
+                    <Link
+                      href={`/admin/users/${client.id}`}
+                      className="flex flex-col hover:underline"
+                    >
+                      <span className="font-medium">{client.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {client.email}
+                      </span>
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {client.phone || "—"}
+                  </TableCell>
+                  <TableCell>{client.appointmentCount}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(client.createdAt), "MMM d, yyyy")}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.items.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell>
-                      <Link
-                        href={`/admin/users/${client.id}`}
-                        className="flex flex-col hover:underline"
-                      >
-                        <span className="font-medium">{client.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {client.email}
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {client.phone || "—"}
-                    </TableCell>
-                    <TableCell>{client.appointmentCount}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {format(new Date(client.createdAt), "MMM d, yyyy")}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {data.totalPages > 1 && (
-            <ClientPagination
-              page={data.page}
-              totalPages={data.totalPages}
-              total={data.total}
-              label="clients"
-              disabled={loading}
-              onPageChangeAction={setPage}
-            />
-          )}
-        </>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   )

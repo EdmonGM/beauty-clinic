@@ -7,38 +7,15 @@ import {
   actionSuccess,
 } from "@/lib/action-response"
 import { requireAdmin } from "@/lib/auth-server-hooks"
-import {
-  clientIdSchema,
-  clientNotesSchema,
-  ClientNotesInput,
-} from "@/lib/validations/users"
-import {
-  AdminClientDetail,
-  AdminClientListItem,
-  ClientPage,
-} from "@/types/user"
-
-const PAGE_SIZE = 20
-
-function buildPage<T>(items: T[], total: number, page: number): ClientPage<T> {
-  return {
-    items,
-    total,
-    page,
-    pageSize: PAGE_SIZE,
-    totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
-  }
-}
+import { AdminClientDetail, AdminClientListItem } from "@/types/user"
 
 export async function getAllClients(
-  query: string,
-  page: number
-): Promise<ActionResponse<ClientPage<AdminClientListItem>>> {
+  query: string
+): Promise<ActionResponse<AdminClientListItem[]>> {
   try {
     await requireAdmin()
 
     const safeQuery = query.trim().slice(0, 100)
-    const safePage = Math.max(1, Math.floor(page) || 1)
 
     const where: any = {
       role: "CLIENT",
@@ -51,23 +28,18 @@ export async function getAllClients(
       }),
     }
 
-    const [clients, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          createdAt: true,
-          _count: { select: { appointments: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        skip: (safePage - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
-      }),
-      prisma.user.count({ where }),
-    ])
+    const clients = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+        _count: { select: { appointments: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    })
 
     const items: AdminClientListItem[] = clients.map((client) => ({
       id: client.id,
@@ -78,10 +50,7 @@ export async function getAllClients(
       appointmentCount: client._count.appointments,
     }))
 
-    return actionSuccess(
-      buildPage(items, total, safePage),
-      "Get clients success"
-    )
+    return actionSuccess(items, "Get clients success")
   } catch (error) {
     return actionError(error, "Get clients error")
   }
@@ -93,10 +62,8 @@ export async function getClientById(
   try {
     await requireAdmin()
 
-    const clientId = clientIdSchema.parse(id)
-
     const client = await prisma.user.findFirst({
-      where: { id: clientId, role: "CLIENT" },
+      where: { id, role: "CLIENT" },
       select: {
         id: true,
         name: true,
@@ -130,25 +97,24 @@ export async function getClientById(
 
 export async function updateClientNotes(
   id: string,
-  input: ClientNotesInput
+  input: string
 ): Promise<ActionResponse<null>> {
   try {
     await requireAdmin()
 
-    const clientId = clientIdSchema.parse(id)
-    const data = clientNotesSchema.parse(input)
-
     const existing = await prisma.user.findFirst({
-      where: { id: clientId, role: "CLIENT" },
+      where: { id, role: "CLIENT" },
       select: { id: true },
     })
     if (!existing) {
       return actionError(null, "Client not found")
     }
 
+    const note = input === "" ? null : input
+
     await prisma.user.update({
-      where: { id: clientId },
-      data: { notes: data.notes || null },
+      where: { id },
+      data: { notes: note },
     })
 
     return actionSuccess(null, "Notes updated")
