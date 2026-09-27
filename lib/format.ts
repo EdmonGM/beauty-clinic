@@ -25,11 +25,6 @@ export function parseDateStr(dateStr: string): Date {
   return new Date(year, month - 1, day)
 }
 
-/** Formats a Date's time-of-day as "HH:mm". */
-export function formatTimeStr(date: Date): string {
-  return format(date, "HH:mm")
-}
-
 /** Sets a "HH:mm" time-of-day onto a given date. */
 export function setTimeStr(date: Date, timeStr: string): Date {
   const [hours, minutes] = timeStr.split(":").map(Number)
