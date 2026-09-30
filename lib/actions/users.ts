@@ -13,15 +13,14 @@ export async function getAllClients(
 
     const safeQuery = query.trim().slice(0, 100)
 
-    const where: any = {
-      role: "CLIENT",
-      ...(safeQuery && {
-        OR: [
-          { name: { contains: safeQuery, mode: "insensitive" } },
-          { email: { contains: safeQuery, mode: "insensitive" } },
-          { phone: { contains: safeQuery, mode: "insensitive" } },
-        ],
-      }),
+    const where: any = { role: "CLIENT" }
+
+    if (safeQuery) {
+      where.OR = [
+        { name: { contains: safeQuery, mode: "insensitive" } },
+        { email: { contains: safeQuery, mode: "insensitive" } },
+        { phone: { contains: safeQuery, mode: "insensitive" } },
+      ]
     }
 
     const clients = await prisma.user.findMany({

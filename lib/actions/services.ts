@@ -119,7 +119,7 @@ export async function deleteService(id: string): Promise<ActionResponse<null>> {
   try {
     await requireAdmin()
     const appointmentCount = await prisma.appointment.count({
-      where: { serviceId: id },
+      where: { serviceId: id, status: "CONFIRMED" },
     })
     if (appointmentCount > 0) {
       return {
